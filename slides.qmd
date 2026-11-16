@@ -3,7 +3,7 @@ title: "Where Does the Signal Come From?"
 subtitle: "High-Resolution Sewer Network Modelling Toward Wastewater-Based Epidemiology"
 author: "Christopher T. DeGroot"
 institute: "Department of Mechanical and Materials Engineering<br>Western University"
-date: last-modified
+date: 2026-11-18
 date-format: "MMMM D, YYYY"
 format:
   revealjs:
@@ -27,25 +27,21 @@ format:
 
 ## A treatment-plant sample pools {{< var NetPopulation >}} people and reports one number
 
-::: {.columns}
-::: {.column width="60%"}
-![](figures/catchment.png){.fig-fill .figctr style="height:440px;width:auto;max-height:440px"}
-:::
-::: {.column width="40%"}
-[A 24 h composite is a small volume taken from the plant's inflow every few minutes over a day and mixed.]{.takeaway}
+[A 24 h composite mixes the flow of everyone upstream, so a rise in one neighbourhood is diluted on its way to the plant. It tells public health *how much* is being shed; acting locally also needs *where*.]{.takeaway}
 
-[Composite samples pool many individuals, so it is inexpensive on a per-person basis. This pooling also means we lose any spatial information about shedding.]{.takeaway}
+![](figures/dilution.png){.fig-fill style="max-height:400px"}
 
-[It tells us *how much* virus the catchment is shedding. Public health acts locally, so it also wants to know *where*.]{.takeaway}
-:::
-:::
-
-[Greenway Wastewater Treatment Plant, London, Ontario: about 60 % of the city's wastewater. Pipe width shows the people upstream.]{.src .tight}
+[Greenway plant, London, Ontario: about 60 % of the city's wastewater. Shares from the sewer model built later in the talk.]{.src .tight}
 
 ::: {.notes}
-Open with the title question: where does the signal come from? A plant sample is cheap per person
-served because it pools everyone, and that same pooling is why it can't say which neighbourhood a
-rise comes from. Define a 24 h composite for the public health half of the room.
+Open with the title question: where does the signal come from? A 24 h composite is a small volume of
+the inflow taken every few minutes over a day and mixed, so it is cheap per person served because it
+pools everyone, and that same pooling is why it can't say which neighbourhood a rise comes from.
+Follow one neighbourhood of about 17,000 people (it becomes zone 09 later in the talk): where its
+sewers leave it, every bit of a composite is its own; by the plant it is 7.7 %, one part in thirteen. The share roughly follows its people over everyone upstream.
+A 5-fold rise there would read 5-fold where its sewers leave it but about 1.3-fold at the plant, inside the
+plant's day-to-day noise. Define a 24 h composite for the public health half of the room. The full
+catchment map, with pipe width by the people upstream, is in Appendix 3.
 :::
 
 ## Cities already sample upstream, but no method yet chooses the sites and days to locate a rise
@@ -106,7 +102,7 @@ of large junctions.
 
 Right: what a method needs to answer "which neighbourhood?". Each dot strip is the 17 studies of Appendix 1: filled if the study handles that need, half if in part; the numbers are full + partial. Travel through the network is well studied (8 fully); shedding everywhere and repeat days almost not at all (1 each). No prior study handles more than two of the five fully (Yang 2024 and Wagner 2015 come closest, with noise and transport); this study handles all five. These five reappear as the talk goes:
 noise (slide 10), travel and mixing (slides 6–9), shedding everywhere and only differences matter
-(slide 11), repeat days (slide 12), adaptive campaigns (slides 17–18). Prior work, 17 studies in the
+(slide 11), repeat days (slide 12), adaptive campaigns (slides 16–17). Prior work, 17 studies in the
 paper's Table 1: coverage and binary-search methods are adaptive but have no noise or flow model;
 detection and entropy placement have flow but look for one point source; inversion studies have
 noise and flow but one source and no repeat days; statistical models of plant data have noise but
@@ -115,7 +111,7 @@ call sub-sewershed inference unresolved. The novelty is the combination, not "in
 design" as such.
 :::
 
-## If one neighbourhood's shedding rises, which samples, on which days, would tell us which one?
+## Locating a rise is a choice of sites and days, fixed in advance or adapted to the results
 
 ![](figures/plan_grid.svg){.fig-fill}
 
@@ -125,24 +121,23 @@ design" as such.
 Two ways to spend site-days. A fixed plan decides everything in advance. An adaptive campaign
 decides each day from the results so far. Both grids are real plans from the paper.
 
-Left, the fixed plan. It is designed before any data, so it's the same plan whichever zone is hot.
-Its goal: make a {{< var HotSpotFactor >}}-fold hot spot in any zone look different from a hot spot
-in every other zone, by at least {{< var SepThreshold >}} noise standard deviations. It's built
-greedily: start with one day at the plant, then keep adding the site-day that separates the most
-pairs of zones, until every pair is separated. That takes {{< var DesignFullSiteDays >}} site-days at
-{{< var DesignFullSites >}} sites. The repeat days go to the outlets of pass-through zones (blue),
-because those zones can only be estimated by differencing two sites. Separating every pair turns out
-not to be enough to name the hot zone confidently (slide 16): {{< var SepThreshold >}} standard
-deviations is a minimum gap between two zones' expected results, and one noisy campaign still
-mixes up such a pair about {{< var SepConfusePct >}} % of the time, against 13 rivals at once.
+Read the grids: one row per sampling site, grouped as the plant (top), the sewers arriving at the
+plant, and sites further upstream; one square per day a site is sampled. Site names don't matter
+yet; the neighbourhoods and their sites come on slide 8.
 
-Right, one adaptive campaign from the simulations, with a hot spot in zone
-{{< var ExZone >}} (outlet WO635, green). The plant is sampled every day, plus two sites chosen from
-the results so far; samplers hold their composites and results come back {{< var LagTurnaround >}}
-days later. It starts at the arriving streams (purple), follows the high ones upstream, and names
-zone {{< var ExZone >}} at {{< var AdaptStopPct >}} % on day {{< var ExNamedDay >}}, after
-{{< var ExSiteDays >}} site-days. More site-days than the fixed plan, but it ends with a name; the
-comparison of the two is slides 16–18.
+Left, the separation plan, a fixed plan. It is designed before any data, so it's the same plan wherever the rise is.
+Its goal is that a rise in any neighbourhood looks different from a rise in any other. It takes
+{{< var DesignFullSiteDays >}} site-days at {{< var DesignFullSites >}} sites, and the days at a site
+can be taken in any order. How it's built is slide 13.
+
+Right, one simulated adaptive campaign, with a {{< var HotSpotFactor >}}-fold rise in one
+neighbourhood (the shaded row is its site). The plant is sampled every day, plus two sites chosen
+from the results so far; samplers hold their composites and results come back
+{{< var LagTurnaround >}} days later. It starts at the arriving sewers, follows the high ones
+upstream, and locates the rise on day {{< var ExNamedDay >}} (the star), after
+{{< var ExSiteDays >}} site-days. More site-days than the fixed plan, but it ends with an answer;
+the comparison of the two is slides 15–17. (For the presenter: the rise is in zone
+{{< var ExZone >}}, outlet WO635; "located" is named at {{< var AdaptStopPct >}} %, slide 14.)
 
 The paper's four questions: (i) what can plant samples tell, with and without the sewers arriving at
 the plant; (ii) how many upstream site-days does a fixed plan need, and how much does adaptive
@@ -183,7 +178,7 @@ neighbourhoods; (iv) is precision even across neighbourhoods of different margin
 Roadmap. Everything runs on open data plus the group's own monitoring record. Each section of the
 talk is one or two boxes of this chain, and the small pictures are the figures you'll see in each:
 the network (slide 6), dry-day flows (7), who is in a composite (9), what a plan can identify (12),
-an adaptive campaign (17), and precision by neighbourhood (21). The data enter where they're used:
+an adaptive campaign (16), and precision by neighbourhood (19). The data enter where they're used:
 census population places people on the pipes, four years of lab composites give the noise, and
 ON-Marg gives the marginalization of each neighbourhood.
 :::
@@ -228,7 +223,15 @@ three repeating dry days, day 3 kept.
 
 ![](figures/flow_inset.svg){style="width:70%;margin:0"}
 
-[$R_n(t) = \lambda\, f_{z(n)}\, P_n\, g(t)$]{.slide7-eq}
+:::: {.eq-small .slide7-eq}
+$$
+\underbrace{R_n(t)}_{\substack{\text{shed at}\\ \text{node } n}} =
+\underbrace{\lambda}_{\substack{\text{rate per}\\ \text{person}}}\,
+\underbrace{f_{z(n)}}_{\substack{\text{zone}\\ \text{factor}}}\,
+\underbrace{P_n}_{\text{people}}\,
+\underbrace{g(t)}_{\substack{\text{water}\\ \text{use}}}
+$$
+::::
 :::
 :::
 
@@ -286,9 +289,12 @@ The tree on the right shows which zone drains into which, with the plant at the 
 ![](figures/representation.svg){.fig-fill}
 :::
 ::: {.column width="36%"}
+::: {.eq-small}
 $$
-\bar C_s = \sum_z f_z\, C_{s,z}(k)
+\bar C_s = \sum_z \underbrace{f_z}_{\substack{\text{zone}\\ \text{factor}}}\,
+\underbrace{C_{s,z}(k)}_{\substack{\text{zone } z\text{'s part at site } s\\ \text{decay rate } k}}
 $$
+:::
 $$
 W_{s,z} = \frac{f_z C_{s,z}}{\sum_{z'} f_{z'} C_{s,z'}}
 $$
@@ -314,14 +320,18 @@ The transport is a linear operator from every release to every site, computed on
 ![](figures/noise.svg){.fig-fill}
 :::
 ::: {.column width="32%"}
+::: {.eq-small}
 $$
-y_c = \ln \bar C_c + \varepsilon_c
+\underbrace{y_c}_{\substack{\text{log result,}\\ \text{composite } c}} =
+\underbrace{\ln \bar C_c}_{\text{model}} +
+\underbrace{\varepsilon_c}_{\text{noise}}
 $$
+:::
 $$
 \varepsilon_c \sim \mathcal{N}(0, \sigma_s^2)
 $$
 
-[σ = 0.8 means a single result is often off by a factor of two. Occasional wild values too (Appendix 9).]{.takeaway}
+[Upstream, σ = {{< var SigmaUpstream >}}: a single result is often off by a factor of two. Occasional wild values too (Appendix 9).]{.takeaway}
 
 [Noise doesn't change which contrasts a plan identifies, only how many days it takes to tell zones apart. Without it, one day at each of {{< var DesignFullRankSites >}} sites would tell every pair apart.]{.takeaway}
 :::
@@ -386,7 +396,7 @@ directions; the decay rate is the other nuisance parameter, with a prior spannin
 {{< var KPriorFactor >}} either way.
 :::
 
-## Repeat days at the plant add nothing: the plant and its arriving sewers identify at most {{< var DesignPlantMaxRank >}} of {{< var DesignContrasts >}} contrasts
+## Repeat days at the plant add nothing: the plant and its arriving sewers identify at most {{< var DesignPlantMaxRank >}} of {{< var DesignContrasts >}} contrasts [Precision plan (fixed)]{.plan-tag}
 
 ::: {.columns}
 ::: {.column width="62%"}
@@ -413,51 +423,29 @@ the level absorbs its one direction. Its arriving sewers mix zones in different 
 none isolates a zone. One day at {{< var DesignFullRankSites >}} sites identifies all
 {{< var DesignContrasts >}}. In general: n arriving streams identify at most n − 1 contrasts.
 The bound Cov(β̂) ≥ S⁻¹ is the Cramér–Rao bound; for the weighted least-squares fit of the linearized
-model with normal errors it is reached. Derivation in Appendix 6. The blue curve here is the greedy plan for precision (most contrasts, then D_s); the
-fixed plan on slides 4, 13, and 14 is a different greedy plan, built to tell pairs apart.
+model with normal errors it is reached. Derivation in Appendix 6. The blue curve is the precision plan, the name used for it from here on: greedy, each step adding the
+site-day that identifies the most contrasts, then the most overall precision (D_s, the log determinant
+of S). It comes back on slides 19 and 20. The separation plan on slides 4 and 13 is a different greedy
+plan, built to tell pairs apart.
 :::
 
-## Telling every pair of zones apart takes {{< var DesignFullSiteDays >}} site-days at {{< var DesignFullSites >}} sites
+## A greedy search tells every pair of zones apart in [{{< var DesignFullSiteDays >}} site-days]{.nowrap} at {{< var DesignFullSites >}} sites [Separation plan (fixed)]{.plan-tag}
 
 ::: {.columns}
-::: {.column width="64%"}
-![](figures/design_pairs.svg){.fig-fill}
-:::
-::: {.column width="36%"}
+::: {.column width="37%"}
+::: {.eq-small}
 $$
 \delta_{ij}^2 = \sum_s \omega_s \Delta_s^2 - \frac{\left(\sum_s \omega_s \Delta_s\right)^2}{\sum_s \omega_s}
 $$
-
-[$\Delta_s$: the difference at site $s$ between a hot spot in zone $i$ and one in zone $j$; $\omega_s = n_s/\sigma_s^2$. Told apart if $\delta_{ij} \ge 2$.]{.takeaway}
-
-[**Goal:** tell every pair apart. That is stricter than identifying every contrast.]{.takeaway}
-
-[**Greedy search:** each point on the curve adds the site-day that tells the most new pairs apart.]{.takeaway}
-:::
 :::
 
-[{{< var HotSpotFactor >}}-fold hot spot. {{< var DesignTenDays >}} site-days at {{< var DesignTenDaysSites >}} sites separate {{< var DesignTenDaysPairsPct >}} % of pairs.]{.src .tight}
+[$\Delta_s$: the difference at site $s$ between a {{< var HotSpotFactor >}}-fold hot spot in zone $i$ and one in zone $j$; $\omega_s = n_s/\sigma_s^2$. Told apart if $\delta_{ij} \ge 2$.]{.takeaway}
 
-::: {.notes}
-delta uses normal noise with the composite standard deviations (0.61 at the plant and arriving sewers,
-0.83 upstream), no background between zones, and no heavy tails. It is computed from expected results,
-before any sample.
-A change of goal from slide 12. There, a plan was judged by how many contrasts it identifies and how
-precisely (the precision plan, ranked by rank and then D_s). Full rank means every contrast can be
-estimated, not that a hot spot stands out from the noise. Here a plan is judged by how many pairs of
-zones it tells apart above the noise, which is what locating a hot spot needs. This is the fixed plan
-on slide 4.
+[**Separation plan:** tell every pair apart, which is stricter than identifying every contrast.]{.takeaway}
 
-The level is unknown, so only the pattern across sites counts: the weighted mean of Delta is
-removed. Two noise widths apart still confuses the pair about 16 % of the time. The next slide
-shows how the plan was built. The extra days go to the outlets of the pass-through
-zones.
+[**Greedy search:** start with one day at the plant; each step adds the site-day that tells the most new pairs apart.]{.takeaway}
 :::
-
-## The fixed plan grows one site-day at a time, each time adding the day that tells the most pairs apart
-
-[The {{< var DesignFullSiteDays >}}-site-day plan was found by a greedy search that scores each candidate day by how many pairs it brings to $\delta \ge 2$.]{.takeaway}
-
+::: {.column width="63%"}
 ```{=html}
 <div class="gsteps" id="gsteps" aria-label="The greedy plan for telling pairs apart, one site-day at a time: the pairs told apart and the days at each site">
   <div class="gs-head"><span class="gs-count"></span><button class="gs-replay" type="button">↻ replay</button></div>
@@ -525,32 +513,35 @@ zones.
 })();
 </script>
 ```
-
-```{=html}
-<div class="greedy-steps">
-  <div><i>1</i>Start with one day at the plant.</div>
-  <div class="arr">→</div>
-  <div><i>2</i>Try one more day at each site: how many pairs would reach δ ≥ 2?</div>
-  <div class="arr">→</div>
-  <div><i>3</i>Keep the best, and repeat until every pair is told apart.</div>
-</div>
-```
+:::
+:::
 
 [Only the count of days at each site matters: the dry-day flows repeat and the hot spot is taken as steady.]{.takeaway}
 
 ::: {.notes}
-How the fixed plan on slides 4 and 13 was built. The score is the number of pairs told apart, not D_s. The animation plays every step (replay button top right). The
-triangle is every pair of zones; a square fills once a
-5-fold hot spot in one zone of the pair would look different from one in the other by at least two
-noise standard deviations (the separation on the previous slide). The greedy search starts from one day
-at the plant, tries one more day at every candidate site, keeps the day that separates the most pairs,
-and repeats; it never revisits earlier choices. After 4 site-days the plant and three sites separate
-18 % of pairs, after 10 site-days 56 %, and after 38 site-days every pair.
-Yellow marks what the latest step added: the site-day on the right (a dot per day at that zone's outlet)
-and the pairs it told apart on the left. The early days spread over new sites; the late ones are repeat
-days at a few outlets (05, 06, and 10) for the last stubborn pairs: from 27 site-days on, many steps
-tell no new pair apart, and only 4 more pairs fall in the last 12 steps. The last step, a
-fifth day at zone 06's outlet, separates 06 from 07.
+A change of goal from the previous slide. There, a plan was judged by how many contrasts it identifies
+and how precisely (the precision plan, ranked by rank and then D_s). Full rank means every contrast can
+be estimated, not that a hot spot stands out from the noise. Here a plan is judged by how many pairs of
+zones it tells apart above the noise, which is what locating a hot spot needs. This is the separation
+plan, the left grid on slide 4.
+
+delta uses normal noise with the composite standard deviations (0.61 at the plant and arriving sewers,
+0.83 upstream), no background between zones, and no heavy tails. It is computed from expected results,
+before any sample. The level is unknown, so only the pattern across sites counts: the weighted mean of
+Delta is removed. Two noise widths apart still confuses the pair about 16 % of the time.
+
+The animation plays every step (replay button top right). The triangle is every pair of zones; a square
+fills once the pair is told apart. The greedy search starts from one day at the plant, tries one more
+day at every candidate site, keeps the day that separates the most pairs, and repeats; it never
+revisits earlier choices. The score is the number of pairs told apart, not D_s. After 4 site-days the
+plant and three sites separate 18 % of pairs, after {{< var DesignTenDays >}} site-days
+{{< var DesignTenDaysPairsPct >}} %, and after {{< var DesignFullSiteDays >}} site-days every pair.
+Yellow marks what the latest step added: the site-day on the right (a dot per day at that zone's
+outlet) and the pairs it told apart on the left. The early days spread over new sites; the late ones
+are repeat days at the outlets of pass-through zones (05, 06, and 10) for the last stubborn pairs:
+from 27 site-days on, many steps tell no new pair apart, and only 4 more pairs fall in the last 12
+steps. The last step, a fifth day at zone 06's outlet, separates 06 from 07. The curve of pairs told
+apart against site-days, with the plant-only and all-sites plans, is in Appendix 6.
 
 Timing: a fixed plan is a count of days at each site. The hydraulics repeat from day to day and the
 hot spot is assumed steady over the campaign, so each composite at a site carries the same
@@ -559,7 +550,7 @@ That's what "any order" meant on slide 4. The adaptive campaign is different: th
 matters, because each day's choice uses the results so far.
 :::
 
-## A zone is named when its probability of being hot reaches {{< var AdaptStopPct >}} %
+## A zone is named when its probability of being hot reaches {{< var AdaptStopPct >}} % [Adaptive campaign]{.plan-tag}
 
 [Separation scores a plan on its expected results; naming decides from one campaign's noisy results.]{.takeaway}
 
@@ -574,19 +565,25 @@ y_c =
 \underbrace{e_c}_{\text{noise}}
 $$
 :::
-$$
-u_z \sim \mathcal{N}(0, \tau^2), \qquad e_c \sim \text{Student-}t
-$$
-$$
-p_h \propto \pi_h\, p(\mathbf{y}\mid h), \qquad P_z = \sum_{h:\, z \in \mathcal{G}_h} p_h
-$$
 
-[The **background** $u_z$: zones differ even with no outbreak, and repeat days don't average it out. $\tau = {{< var AdaptTau >}}$ is assumed.]{.takeaway}
+::: {.eq-small}
+$$
+p_h =
+\frac{\overbrace{\pi_h}^{\text{prior}}\;\overbrace{p(\mathbf{y}\mid h)}^{\text{fit to the results}}}
+{\sum_{h'} \pi_{h'}\, p(\mathbf{y}\mid h')},
+\qquad
+\underbrace{P_z}_{\substack{\text{zone } z\\ \text{is hot}}} = \sum_{h \text{ names } z} p_h
+$$
+:::
+
+[**Hypothesis $h$:** one zone is $\kappa$-fold hot; $\hat W_{h,s,z}$ are its fractions.]{.takeaway}
+
+[**Background** $u_z \sim \mathcal{N}(0, \tau^2)$: zones differ even with no outbreak, and $\tau = {{< var AdaptTau >}}$ is assumed. Noise: Student-$t$.]{.takeaway}
 :::
 ::: {.column width="42%"}
 ```{=html}
-<div class="pbars" id="pbars" aria-label="Each zone's probability of being hot, morning by morning, in the example campaign, with the composites analyzed">
-  <div class="pb-head"><span class="pb-morning">Morning 23</span><button class="pb-replay" type="button">↻ replay</button></div>
+<div class="pbars" id="pbars" aria-label="Each zone's probability of being hot, day by day, in the example campaign, day by day, with the composites analyzed">
+  <div class="pb-head"><span class="pb-morning">Day 23</span><button class="pb-replay" type="button">↻ replay</button></div>
   <div class="pb-plot">
     <div class="pb-y"><span style="bottom:100%">1.0</span><span style="bottom:50%">0.5</span><span style="bottom:0">0.0</span></div>
     <div class="pb-area">
@@ -619,7 +616,7 @@ $$
   });
   function show(k) {
     const p = D.p[k], top = p.indexOf(Math.max(...p));
-    label.textContent = "Morning " + D.mornings[k] + (p[top] >= D.stop ? ": zone " + D.zones[top] + " named" : "");
+    label.textContent = "Day " + D.mornings[k] + (p[top] >= D.stop ? ": zone " + D.zones[top] + " named" : "");
     els.forEach((e, i) => {
       e.b.style.height = (100 * p[i]) + "%";
       e.v.style.bottom = (100 * p[i]) + "%";
@@ -637,7 +634,7 @@ $$
   }
   show(last);
   root.querySelector(".pb-replay").addEventListener("click", play);
-  // Automated captures (decktape for the PDF) keep the last morning; a live deck plays on arrival.
+  // Automated captures (decktape for the PDF) keep the last day; a live deck plays on arrival.
   if (navigator.webdriver) return;
   (function wait() {
     if (!window.Reveal || !Reveal.isReady()) return setTimeout(wait, 100);
@@ -651,7 +648,7 @@ $$
 :::
 :::
 
-[Bars: one simulated adaptive campaign, a {{< var HotSpotFactor >}}-fold hot spot in {{< var ExZone >}}, the plant and 2 held upstream composites analyzed each morning, results back {{< var LagTurnaround >}} days later.]{.src .tight}
+[Bars: one simulated adaptive campaign, a {{< var HotSpotFactor >}}-fold hot spot in zone {{< var ExZone >}}, the plant and 2 held upstream composites analyzed each day, results back {{< var LagTurnaround >}} days later.]{.src .tight}
 
 ::: {.notes}
 The step from the last two slides. Pair separation is computed before any sample is taken, from the
@@ -664,10 +661,10 @@ necessary for that but not enough, as the next slide shows.
 In a campaign the analysis doesn't fit all 13 contrasts. It compares one hypothesis per candidate hot
 zone, each fitted by iteratively reweighted least squares, and turns the fits into probabilities
 (Appendix 8).
-Hypothesis h: which zone is hot, and how strongly; Y_{s,h} is the pattern it predicts. Bayes'
+Hypothesis h: which zone is hot, and how strongly (kappa of {{< var AdaptKappaList >}}); Y_{s,h} is the pattern it predicts, and W-hat_{h,s,z} are the representation fractions with h's shedding, so the background reaches each site in proportion to the zone's share there. Bayes'
 rule over hypotheses: each names a hot zone and a factor from a set (strength isn't known).
 mu and u are integrated out (Laplace), so the evidence depends on the hypothesis and on tau only.
-A site that reads high can be explained by a zone that always runs a little high. Student-t lets one
+The background doesn't change from day to day, so repeat days don't average it out: a site that reads high can be explained by a zone that always runs a little high. Student-t lets one
 wild composite be an outlier rather than a hot spot.
 
 How the equation connects to what came before. mu is the level from the contrasts slide: it absorbs
@@ -678,19 +675,19 @@ random with spread tau rather than estimated. e_c is the noise slide's epsilon, 
 And the difference Y_{s,h} minus Y_{s,h'} between two hypotheses is the Delta_s in the pair separation:
 naming compares exactly the patterns the fixed plan was built to tell apart.
 
-The bars play through every morning of the example adaptive campaign coming up: simulated, one
-5-fold hot spot in zone 09, the plant and two held upstream composites analyzed each morning, results
+The bars play through every day of the example adaptive campaign coming up: simulated, one
+5-fold hot spot in zone 09, the plant and two held upstream composites analyzed each day, results
 back {{< var LagTurnaround >}} days later. Of {{< var ExSeeds >}} such campaigns, {{< var ExSeedsNamed >}} named zone 09; this one has the median site-days
-({{< var ExSiteDays >}}, named on morning {{< var ExNamedDay >}}). It is not the fixed plan. Replay button top right.
-The dots under the bars are the composites: filled, the results that arrive that morning and update
-the bars; hollow, the composites the lab starts that morning, chosen from those bars. Each upstream
+({{< var ExSiteDays >}}, named on day {{< var ExNamedDay >}}). It is not the fixed plan. Replay button top right.
+The dots under the bars are the composites: filled, the results that arrive that day and update
+the bars; hollow, the composites the lab starts that day, chosen from those bars. Each upstream
 site is a zone's outlet, so a dot sits under that zone; the plant has its own column and is analyzed
 every day. Two dots in one column are two held days from the same site.
-Zone 01 leads early (about 0.3), then 07 for a few mornings; from morning 13 zone 09 leads, climbing
-with two setbacks as results scatter, and is named on the last morning. Details: Appendix 8.
+Zone 01 leads early (about 0.3), then 07 for a few days; from day 13 zone 09 leads, climbing
+with two setbacks as results scatter, and is named on the last day. Details: Appendix 8.
 :::
 
-## A fixed plan that separates every pair names the hot zone at {{< var AdaptStopPct >}} % in only {{< var FixRobGreedyConfident >}} % of runs
+## A fixed plan that separates every pair names the hot zone at {{< var AdaptStopPct >}} % in only {{< var FixRobGreedyConfident >}} % of runs [Separation plan (fixed)]{.plan-tag}
 
 ![](figures/localisation_fixed.svg){.fig-fill}
 
@@ -718,20 +715,116 @@ was designed to separate pairs, not to reach confidence. Report the share of sim
 zone, not pair separation.
 :::
 
-## An adaptive campaign follows the results: it starts at the arriving sewers and homes in on the high ones
+## An adaptive campaign follows the results: it starts at the arriving sewers and homes in on the high ones [Adaptive campaign]{.plan-tag}
 
-![](figures/example_campaign.svg){.fig-fill}
+```{=html}
+<div class="cmap" id="cmap" aria-label="The example adaptive campaign on the map, day by day: each zone shaded by its probability of being hot, the composites analyzed, and the probabilities over time">
+  <div class="cm-head"><span class="cm-day">Day 23</span><button class="cm-replay" type="button">↻ replay</button></div>
+  <div class="cm-body">
+    <div class="cm-mapbox">
+      <img src="figures/campaign_map_base.png" alt="">
+      <svg class="cm-svg" preserveAspectRatio="none"></svg>
+    </div>
+    <div class="cm-side">
+      <svg class="cm-chart" viewBox="0 0 740 300"></svg>
+      <div class="cm-key">
+        <span class="cm-ramp"></span> zone's probability of being hot, 0 → 1
+        <br><i class="dot in"></i> results in that day <i class="dot sent"></i> sent to the lab that day
+      </div>
+    </div>
+  </div>
+</div>
+<script src="figures/posterior_frames.js"></script>
+<script src="figures/campaign_map.js"></script>
+<script>
+(function () {
+  const D = window.POSTERIOR_FRAMES, M = window.CAMPAIGN_MAP, root = document.getElementById("cmap");
+  const NS = "http://www.w3.org/2000/svg", mk = (t, a, p) => { const e = document.createElementNS(NS, t);
+    for (const k in a) e.setAttribute(k, a[k]); if (p) p.append(e); return e; };
+  const last = D.mornings.length - 1, hot = D.hot, label = root.querySelector(".cm-day");
+  // --- map: zones shaded by probability, labels, sites
+  const svg = root.querySelector(".cm-svg");
+  svg.setAttribute("viewBox", M.viewBox.join(" "));
+  const zEl = {}, sEl = {};
+  D.zones.forEach(z => { zEl[z] = mk("path", { d: M.zones[z].d, class: "cm-zone" }, svg); });
+  D.zones.forEach(z => { const t = mk("text", { x: M.zones[z].lx, y: M.zones[z].ly, class: "cm-zl" }, svg); t.textContent = z; });
+  Object.entries(M.sites).forEach(([k, [x, y]]) => {
+    const g = mk("g", {}, svg);
+    if (k === "P") mk("path", { d: `M${x},${y - 420}L${x + 120},${y - 130}L${x + 420},${y - 130}L${x + 180},${y + 60}L${x + 270},${y + 360}L${x},${y + 180}L${x - 270},${y + 360}L${x - 180},${y + 60}L${x - 420},${y - 130}L${x - 120},${y - 130}Z`, class: "cm-plant" }, g);
+    const ring = mk("circle", { cx: x, cy: y, r: 330, class: "cm-sent" }, g);
+    const dot = mk("circle", { cx: x, cy: y, r: k === "P" ? 0 : 150, class: "cm-site" }, g);
+    sEl[k] = { ring, dot };
+  });
+  // --- chart: every zone's probability over the days, revealed up to the current day
+  const ch = root.querySelector(".cm-chart"), L = 52, R = 720, T = 16, B = 250;
+  const d0 = D.mornings[0], d1 = D.mornings[last] + 1;  // one day past the last, so its step has width
+  const X = d => L + (R - L) * (d - d0) / (d1 - d0), Y = p => B - (B - T) * p;
+  [0, 0.5, 1].forEach(v => { mk("line", { x1: L, x2: R, y1: Y(v), y2: Y(v), class: "cm-grid" }, ch);
+    mk("text", { x: L - 8, y: Y(v) + 5, class: "cm-tick", "text-anchor": "end" }, ch).textContent = v.toFixed(1); });
+  [1, 5, 10, 15, 20].filter(d => d <= D.mornings[last]).forEach(d =>
+    mk("text", { x: X(d), y: B + 20, class: "cm-tick", "text-anchor": "middle" }, ch).textContent = d);
+  mk("text", { x: (L + R) / 2, y: B + 44, class: "cm-axis", "text-anchor": "middle" }, ch).textContent = "Day of campaign";
+  mk("text", { x: 12, y: (T + B) / 2, class: "cm-axis", "text-anchor": "middle", transform: `rotate(-90 12 ${(T + B) / 2})` }, ch).textContent = "P(hot)";
+  mk("line", { x1: L, x2: R, y1: Y(D.stop), y2: Y(D.stop), class: "cm-stop" }, ch);
+  mk("text", { x: L + 6, y: Y(D.stop) - 6, class: "cm-tick" }, ch).textContent = "95 %: name the zone";
+  const clip = mk("clipPath", { id: "cm-clip" }, mk("defs", {}, ch));
+  const clipR = mk("rect", { x: 0, y: 0, width: X(D.mornings[0]), height: 300 }, clip);
+  const lines = mk("g", { "clip-path": "url(#cm-clip)" }, ch);
+  // steps: each day's probability holds until the next day's update, as in the paper's figure
+  const steps = i => D.mornings.map((d, k) => `${X(d)},${Y(D.p[k][i])} ${X(d + 1)},${Y(D.p[k][i])}`).join(" ");
+  D.zones.forEach((z, i) => { if (z === hot) return; mk("polyline", { points: steps(i), class: "cm-other" }, lines); });
+  const hi = D.zones.indexOf(hot);
+  mk("polyline", { points: steps(hi), class: "cm-hot" }, lines);
+  const now = mk("line", { y1: T, y2: B, class: "cm-now" }, ch);
+  const hotLab = mk("text", { class: "cm-hotlab", "text-anchor": "end" }, ch); hotLab.textContent = "zone " + hot + " (hot)";
+  function show(k) {
+    const p = D.p[k], top = p.indexOf(Math.max(...p)), d = D.mornings[k];
+    label.textContent = "Day " + d + (p[top] >= D.stop ? ": zone " + D.zones[top] + " named" : "");
+    D.zones.forEach((z, i) => { zEl[z].style.fillOpacity = (0.06 + 0.8 * p[i]).toFixed(3);
+      zEl[z].classList.toggle("named", p[i] >= D.stop); });
+    Object.entries(sEl).forEach(([c, e]) => {
+      e.ring.classList.toggle("on", D.sent[k].includes(c));
+      e.dot.classList.toggle("in", D.results[k].includes(c)); });
+    clipR.setAttribute("width", X(d + 1) + 1);
+    now.setAttribute("x1", X(d + 1)); now.setAttribute("x2", X(d + 1));
+    hotLab.setAttribute("x", X(d + 1) - 6); hotLab.setAttribute("y", Y(p[hi]) - 8);
+  }
+  let timer = null;
+  function play() {
+    clearInterval(timer); let k = 0; show(0);
+    timer = setInterval(() => { k += 1; show(k); if (k >= last) clearInterval(timer); }, 750);
+  }
+  show(last);
+  root.querySelector(".cm-replay").addEventListener("click", play);
+  // Automated captures (decktape for the PDF) keep the last day; a live deck plays on arrival.
+  if (navigator.webdriver) return;
+  (function wait() {
+    if (!window.Reveal || !Reveal.isReady()) return setTimeout(wait, 100);
+    const here = () => Reveal.getCurrentSlide() && Reveal.getCurrentSlide().contains(root);
+    Reveal.on("slidechanged", () => { if (here()) setTimeout(play, 400); else { clearInterval(timer); show(last); } });
+    if (here()) setTimeout(play, 400);
+  })();
+})();
+</script>
+```
 
-[Every sampler collects daily and holds its composites. Each morning the lab analyzes the plant and 2 chosen ones; results arrive {{< var LagTurnaround >}} days later. Named on day {{< var ExNamedDay >}} after {{< var ExSiteDays >}} site-days.]{.takeaway}
+[Each day the lab analyzes the plant and 2 held composites; results arrive {{< var LagTurnaround >}} days later. Named on day {{< var ExNamedDay >}} after {{< var ExSiteDays >}} site-days.]{.takeaway}
 
 ::: {.notes}
-Each morning, sites are chosen to separate the hypotheses still in contention, weighted by their
+Each day, sites are chosen to separate the hypotheses still in contention, weighted by their
 current probabilities (score U(s), Appendix 8). The probability of the hot zone falls back twice as
 results scatter: the analysis allows for outliers and for zones that run high without a hot spot.
 This campaign is the one with site-days closest to the median of those that named zone 9.
+
+The map plays the campaign day by day (replay button top right). Each zone is shaded by its
+probability of being hot; filled dots are the composites whose results arrive that day, rings the
+composites the lab starts that day. The chart on the right draws each zone's probability as the days
+go by, zone 09 in orange. Zone 01 leads early, then 07; from day 13 zone 09 leads, with two
+setbacks, and is named on day {{< var ExNamedDay >}}. The composites analyzed each lab day are in
+Appendix 8.
 :::
 
-## Adaptive campaigns name the hot zone in {{< var HeldKTwoCorrect >}} % of runs, and {{< var HeldKTwoGivenLoc >}} % of names are right
+## Adaptive campaigns name the hot zone in {{< var HeldKTwoCorrect >}} % of runs, and {{< var HeldKTwoGivenLoc >}} % of names are right [Adaptive campaign vs separation plan]{.plan-tag}
 
 ![](figures/localisation_adaptive.svg){.fig-fill}
 
@@ -745,39 +838,55 @@ statistics must carry the features of the data. More composites a day shorten th
 about four they add little else (Appendix 10).
 :::
 
-## Only a strong outbreak is found: {{< var KappaAdaptTwoCorrect >}} % at 2-fold, {{< var KappaAdaptThreeCorrect >}} % at 3-fold, {{< var KappaAdaptTenCorrect >}} % at 10-fold
+## Only a strong outbreak is found, and only if neighbourhood differences aren't underestimated [Adaptive campaign]{.plan-tag}
 
-![](figures/kappa.svg){.fig-fill}
+::: {.columns}
+::: {.column width="50%"}
+[How strong the hot spot is]{.panel-head .ctr}
 
-[2–3-fold is a typical worse-off neighbourhood; 5–10-fold an early local outbreak.]{.takeaway}
+![](figures/kappa.svg){.fig-fill style="max-height:330px"}
+
+[Named at 95 %: {{< var KappaAdaptTwoCorrect >}} % at [2-fold]{.nowrap}, {{< var KappaAdaptThreeCorrect >}} % at [3-fold]{.nowrap}, {{< var KappaAdaptTenCorrect >}} % at [10-fold]{.nowrap}.]{.takeaway}
+:::
+::: {.column width="50%"}
+[How much zones differ with no outbreak]{.panel-head .ctr}
+
+![](figures/mismatch.svg){.fig-fill style="max-height:330px"}
+
+[If τ = {{< var MisTauHigh >}} but {{< var AdaptTau >}} is assumed, right names fall from {{< var MisFiveTauThreeBiasZeroGivenLoc >}} % to {{< var MisFiveTauEightBiasZeroGivenLoc >}}&nbsp;% ([5-fold]{.nowrap}), with no warning.]{.takeaway}
+:::
+:::
 
 ::: {.notes}
-Weak hot spots mostly end with "no zone stands out", not a wrong name. Evidence on kappa (Appendix 7): case rates in the worst parts of Toronto and Louisville were about
+Left: how strong a hot spot has to be. 2–3-fold is typical of a worse-off neighbourhood; 5–10-fold of
+an early local outbreak. Weak hot spots mostly end with "no zone stands out", not a wrong name.
+Evidence on kappa (Appendix 7): case rates in the worst parts of Toronto and Louisville were about
 1.5–3.5 times the city's; N1/PMMoV in sewersheds of 10–20 thousand people differed 5–9-fold. With the
 plant and two upstream sites a day for up to {{< var AdaptMaxDays >}} days, this is a tool for a
 strong, early local outbreak.
-:::
 
-## Names can be trusted only if ordinary differences between neighbourhoods aren't underestimated
-
-![](figures/mismatch.svg){.fig-fill}
-
-[If zones differ by τ = {{< var MisTauHigh >}} but the analysis assumes {{< var AdaptTau >}}, right names fall from {{< var MisFiveTauThreeBiasZeroGivenLoc >}} % to {{< var MisFiveTauEightBiasZeroGivenLoc >}} % (5-fold), with no warning.]{.takeaway}
-
-::: {.notes}
-tau is the one assumed input. Too small, and "no answer" becomes a confident wrong answer.
-Assuming a larger tau protects names only in part and costs many names when tau is small. The fix
-is to measure it: a few weeks of composites at the candidate sites in ordinary times would bound
+Right: tau is the one assumed input, the spread of ordinary differences between zones with no
+outbreak. Too small, and "no answer" becomes a confident wrong answer. Assuming a larger tau (the
+dashed lines on the left) protects names only in part and costs many names when tau is small. The
+fix is to measure it: a few weeks of composites at the candidate sites in ordinary times would bound
 the background plus flow-model error. Flow errors (site bias) matter less (Appendix 10).
 :::
 
-## Precision follows a zone's place in the network, not its marginalization
+## Precision follows a zone's place in the network, not its marginalization [Precision plan (fixed)]{.plan-tag}
 
-![](figures/equity_onmarg.svg){.fig-fill}
+[A plan estimates some zones worse than others. Are those the more marginalized neighbourhoods? **ON-Marg** scores Ontario neighbourhoods on four dimensions.]{.takeaway}
 
-[Precision plan, {{< var DesignFullRankSites >}} site-days. Pass-through zones (blue) are least precise on every dimension.]{.takeaway}
+![](figures/equity_onmarg.svg){.fig-fill style="max-height:390px"}
+
+[Precision plan at {{< var DesignFullRankSites >}} site-days. Pass-through zones (blue) are least precise on every dimension.]{.takeaway}
 
 ::: {.notes}
+The turn to equity. Finding an outbreak is one use of upstream data; the other is routine
+monitoring, where every neighbourhood should be watched about equally well. Boston (slide 3) showed
+that how sites are compared can delay alerts in more vulnerable neighbourhoods. Here the question is
+whether the network itself does that: back to the precision plan, which estimates every zone, and
+how its uncertainty lines up with marginalization.
+
 Each dot is a zone; the y axis is how uncertain its estimate is (standard deviation of its log
 shedding factor) in the first plan that identifies every contrast, the precision plan at
 {{< var DesignFullRankSites >}} site-days. Higher is worse. The {{< var EqOwnCount >}} zones with their
@@ -793,13 +902,26 @@ average, but the uncertainty doesn't gather among the more marginalized resident
 network guarantees that, so the check belongs in any design.
 :::
 
-## Designing for the worst-estimated zone brings every zone within a factor of {{< var EqTargetLoose >}} in {{< var EqFactorThreeMm >}} site-days, not {{< var EqFactorThreeDs >}}
+## Designing for the worst-estimated zone brings every zone within a factor of {{< var EqTargetLoose >}} in {{< var EqFactorThreeMm >}} site-days, not {{< var EqFactorThreeDs >}} [Precision plan vs fair plan]{.plan-tag}
 
-![](figures/equity_minimax.svg){.fig-fill}
+::: {.columns}
+::: {.column width="53%"}
+![](figures/equity_minimax.svg){.fig-fill style="max-height:400px"}
+:::
+::: {.column width="47%"}
+![](figures/minimax_map.png){.fig-fill .figctr style="height:410px;width:auto;max-height:410px"}
+:::
+:::
 
-[*Fair* here means every zone estimated equally well; the best-estimated zones pay for it.]{.takeaway}
+[The **fair plan** adds each site-day where it most helps the worst-estimated zone; the best-estimated zones pay for it.]{.takeaway}
 
 ::: {.notes}
+Right: where each design puts its {{< var EqFactorThreeMm >}} site-days, marker area by days, coloured by the kind of site
+(legend under the maps). D_s spreads them almost evenly, about 13 at every site; minimax puts most of them at three
+trunk sites, the arriving sewer WT1420 and the outlets of zones 06 and 10, the sites that separate the
+pass-through zones from what flows into them. Both use only the 15 main candidate sites; a wider pool
+is in Appendix 12.
+
 The minimax design moves days to the trunk sites. D_s maximizes overall precision, so added days go to zones already well estimated; its worst zone
 stays several times less precise than its best. Minimax adds the site-day that most reduces the
 largest zone SD. A zoning cut by marginalization or a wider pool of sites doesn't remove the
@@ -808,10 +930,11 @@ pass-through disadvantage (Appendix 12).
 
 ## Conclusions
 
-- A plant composite counts every neighbourhood by its population, so plant samples can't locate a rise, however many days are sampled.
-- A network model says which upstream samples can. Adaptive sampling with held composites names a strong outbreak in {{< var HeldKTwoCorrect >}} % of campaigns; a 2–3-fold one rarely.
-- Names can be trusted only if the analysis allows for wild values and for ordinary differences between neighbourhoods, and those differences should be measured.
-- The zones between sites on a trunk sewer are estimated worst; designing for the worst zone fixes most of it.
+- A plant composite counts every neighbourhood by its population, so no number of days at the plant can locate a rise.
+- Telling every pair of zones apart on paper isn't enough: the plan built to do it names the hot zone in only {{< var FixRobGreedyConfident >}} % of campaigns.
+- With a network model, adaptive sampling with held composites names a strong outbreak in {{< var HeldKTwoCorrect >}} % of campaigns, a 2–3-fold one rarely.
+- Names can be trusted only if the analysis allows for wild values and ordinary differences between neighbourhoods, which should be measured.
+- Zones between sites on a trunk sewer are estimated worst; designing for the worst zone fixes most of it.
 
 ::: {.notes}
 What a program needs for this: the network topology, the population upstream of each candidate
@@ -836,13 +959,39 @@ QR code to the deck, paper, and code: to add once the repository names are fixed
 :::
 :::
 
-## Appendix 1: Literature {.divider}
+## Backup slides, by appendix {#appendix-index}
+
+```{=html}
+<div class="app-index">
+<a href="#/app-1"><b>A1</b>Literature</a>
+<a href="#/app-2"><b>A2</b>Data</a>
+<a href="#/app-3"><b>A3</b>Hydraulic model</a>
+<a href="#/app-4"><b>A4</b>Zoning</a>
+<a href="#/app-5"><b>A5</b>Transport</a>
+<a href="#/app-6"><b>A6</b>Information</a>
+<a href="#/app-7"><b>A7</b>Hot-spot strength</a>
+<a href="#/app-8"><b>A8</b>Posterior and site choice</a>
+<a href="#/app-9"><b>A9</b>Noise</a>
+<a href="#/app-10"><b>A10</b>Robustness and campaign settings</a>
+<a href="#/app-11"><b>A11</b>Laboratory limits</a>
+<a href="#/app-12"><b>A12</b>Equity alternatives</a>
+<a href="#/app-13"><b>A13</b>Cross-site checks and reproducibility</a>
+</div>
+```
+
+::: {.notes}
+Jump list for questions: click an appendix to go to its divider; each divider links back here.
+:::
+
+## Appendix 1: Literature {#app-1 .divider}
 
 [Prior work on choosing sites or locating sources in sewer and water networks.]{.divider-sub}
 
-## Each prior study has one or two of the features a plan for locating shedding needs {.smaller}
+[↩ All appendices](#appendix-index){.back-link}
 
-| Study | Objective | Noise | Transport | Distrib. | Days | Identif. | Adaptive | Even |
+## Each prior study has one or two of the features a plan for locating shedding needs
+
+| Study | Objective | Noise | Transport | Shedding everywhere | Repeat days | Identifiability | Adaptive | Even precision |
 |---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | Calle 2021 | Coverage; binary search | – | – | ◐ | – | – | ● | ◐ |
 | Kim 2022 | Equal monitored areas | – | – | – | – | – | ◐ | ◐ |
@@ -865,35 +1014,175 @@ QR code to the deck, paper, and code: to add once the repository names are fixed
 
 : {.lit-table .lit-full}
 
-## Appendix 2: Data {.divider}
+[● part of the study; ◐ in part; – absent. Shaded: the five needs counted on slide 3. Paper Table 1; SI explains each rating.]{.src .tight}
+
+## Appendix 2: Data {#app-2 .divider}
 
 [Data sources and the register of data issues.]{.divider-sub}
 
-## The open data needed {{< var DataIssues >}} corrections: {{< var DataIssuesResolved >}} resolved, {{< var DataIssuesProvisional >}} provisional, {{< var DataIssuesOpen >}} open
+[↩ All appendices](#appendix-index){.back-link}
 
-::: {.callout-note}
-FIGURE NEEDED: two or three before/after examples from the register (e.g. the Ridout Street pipes
-listed as proposed, without which about 590 maintenance holes miss the plant; the Dingman Creek
-force main). Source: SI Table S-dataissues.
+## Three of the {{< var DataIssues >}} data issues would each have cut off or blocked part of the catchment
+
+![](figures/data_fixes.png){.fig-fill style="max-height:430px"}
+
+[Final model network. D08 and D28: the part that reaches the plant only through the pipe. D05: the part that drains through it. Each fix confirmed by the City.]{.src .tight}
+
+::: {.notes}
+Three entries from the register, drawn on the final model network.
+
+D08: two 900 mm pipes on Ridout St N are still listed as proposed in the open data, but the City
+confirms they are in service. A model that drops proposed pipes would lose the area in orange, which
+includes the Victoria Hospital sewershed, our one upstream sampler. (The register says about 590
+maintenance holes; the count here is on the final network, after duplicate nodes were merged.)
+
+D28: the Berkshire Village force main ends 25 m from the plant's low-level station with no pipe
+onward. The plant's flow record includes it, and the City confirms it discharges to the main
+headworks, so a 25 m link is added. Without it, the south-west of the catchment is missing.
+
+D05: one pipe's downstream invert is recorded as 25,089.0 m, almost certainly 250.89 m. Read as
+recorded, it blocks the trunk and everything upstream backs up. Out-of-range inverts are treated as
+missing and filled; the City confirmed the value for this pipe. This is the "typo in an invert" of
+slide 6.
 :::
 
-[Data: City of London sewer network, 2021 census dissemination blocks and areas, zoning, NRCan HRDEM lidar, plant flow summaries, ECCC rainfall, the group's monitoring composites, ON-Marg 2021.]{.src}
+## Most issues are settled by the data or the City; {{< var DataIssuesProvisional >}} rest on assumptions the open data can't confirm
 
-## Appendix 3: Hydraulic model {.divider}
+::: {.columns}
+::: {.column width="58%"}
+![](figures/data_register.svg){.fig-fill style="max-height:400px"}
+:::
+::: {.column width="42%"}
+[**Resolved:** settled by the data, by the method, or by the City's answers to our questions.]{.takeaway}
+
+[**Provisional:** an assumption where the data are ambiguous or incomplete, e.g. ideal pumps (no capacities in the data) or interpolated inverts.]{.takeaway}
+
+[**Open:** can't be resolved from the data; the element is omitted or kept as recorded, e.g. a flat pipe whose direction the data don't show (D33).]{.takeaway}
+:::
+:::
+
+[Data: City of London sewer network, 2021 census dissemination blocks and areas, zoning, NRCan HRDEM lidar, plant flow summaries, ECCC rainfall, the group's monitoring composites, ON-Marg 2021. Register: paper SI Table S-dataissues.]{.src .tight}
+
+::: {.notes}
+Every fill and assumption is in the register, with its status, and each fill is flagged in the model
+input. The open ones: inflows from stations outside the data (D20), pipes leaving the catchment at
+summits (D31), the direction of the flat pipe at OS1424 (D33), and the share of flow at the south
+inlet (D34). D33 matters most for the design: it sends part of one zone's sewage into another
+arriving sewer (Appendix 5).
+:::
+
+## Appendix 3: Hydraulic model {#app-3 .divider}
 
 [Network build, loading, and calibration.]{.divider-sub}
 
-## The model reproduces the plant's diurnal swing on dry days
+[↩ All appendices](#appendix-index){.back-link}
 
-![](figures/hydraulics.svg){.fig-fill}
+## The Greenway plant serves {{< var NetPopulation >}} people through a branching network of sewers
+
+![](figures/catchment.png){.fig-fill .figctr style="height:440px;width:auto;max-height:440px"}
+
+[Greenway Wastewater Treatment Plant, London, Ontario: about 60 % of the city's wastewater. Pipe width shows the people upstream.]{.src .tight}
 
 ::: {.notes}
-TO ADD: calibration iterations (SI Section S3) and the swmmbuilder build steps.
+Backup for slide 2: the whole catchment, every public sewer drawn with width by the share of the
+people upstream, and the plant.
 :::
 
-## Appendix 4: Zoning {.divider}
+## Every build step is a rule applied to the whole network, with each fill and change logged
+
+| Step | Rule | In the Greenway catchment |
+|---|---|---|
+| Selection | Built sanitary pipes; overflow pipes dropped | {{< var NetInServicePipes >}} "proposed" pipes taken as built, {{< var NetDroppedPipes >}} removed |
+| Rims | Checked against 1 m lidar ground; missing or implausible ones set to ground plus the median offset | Offset {{< var RimOffset >}} m (IQR {{< var RimIQR >}}) over {{< var RimCompared >}} nodes; {{< var RimFilled >}} filled, {{< var RimReplaced >}} replaced |
+| Reused IDs | Pipe ends with one ID far apart become separate nodes | {{< var NetReusedIDsCatchment >}} IDs split, up to {{< var NetReusedMaxSep >}} m apart |
+| Gaps | Inverts interpolated by length; sizes copied from downstream | {{< var NetGapsFilled >}} of {{< var NetGaps >}} missing values filled |
+| Population | Census blocks shared among pipes within {{< var BlockPipeDistance >}} m by drain connections | {{< var DBCount >}} blocks (median {{< var DBMedianPop >}} people); {{< var NetPopulation >}} people at {{< var NetLoadedNodes >}} nodes |
+| Stations | Ideal pumps; force mains full, Hazen–Williams | {{< var NetPumps >}} stations, {{< var NetForceMainPipes >}} force-main pipes |
+| Routing | Dynamic wave, Manning $n$ = {{< var ManningN >}}, three repeating dry days, day 3 kept | Flooding {{< var HydFloodingPct >}} %, continuity error {{< var HydContinuityPct >}} % |
+
+: {.app-table}
+
+::: {.notes}
+swmmbuilder reads a city's layers through a schema, so the same code serves other cities (paper SI,
+network construction).
+The rules come from the City's design manual where it has one (Manning n, force-main roughness,
+the 0.6 m drop rule for eligible sampling sites). The ideal pump is supported in dry weather by the
+design rules: stations pass the peak hourly flow with the largest pump out, and wet wells fill in 30
+minutes or more at average flow, short against a 24 h composite. Two loops remain in the data, each
+closed by a link that carries no flow; they are removed before transport.
+:::
+
+## Infiltration and non-residential flow are calibrated to the plant's dry-day mean and night minimum
+
+::: {.columns}
+::: {.column width="52%"}
+$$
+\underbrace{Q_{\mathrm I} + Q_{\mathrm R} + Q_{\mathrm N}}_{\text{model mean}} = \bar Q_{\text{plant}}
+$$
+$$
+\underbrace{Q_{\mathrm I} + a\,(Q_{\mathrm R} + Q_{\mathrm N})}_{\text{model minimum}} = r_{\min}\, \bar Q_{\text{plant}}
+$$
+
+[$Q_{\mathrm R}$ is fixed by the population at {{< var LitresPerCapita >}} L per person per day. $a$, the share of wastewater still arriving at the night minimum, comes from the model run, so the two are iterated.]{.takeaway}
+
+[Dry day: under {{< var DryRuleMm >}} mm of rain on each of {{< var DryRuleDays >}} days and no snow on the ground. Reference flow {{< var HydPlantFlow >}}×10³ m³/d over {{< var HydPlantRefDays >}} dry sampling days.]{.takeaway}
+:::
+::: {.column width="48%"}
+```{=html}
+<div class="stat-stack">
+  <div class="stat"><b>{{< var NetSanitaryLs >}}</b> L/s residential, from the census</div>
+  <div class="stat"><b>{{< var NetInfiltrationLs >}}</b> L/s groundwater infiltration ({{< var InfiltrationSharePct >}} % of the flow)</div>
+  <div class="stat"><b>{{< var NonresLs >}}</b> L/s non-residential, carrying no virus</div>
+  <div class="stat"><b>{{< var CalResidual >}}</b> = <i>a</i>, converged after {{< var CalIterations >}} run</div>
+</div>
+```
+
+[The City's design allowance would give {{< var NetDesignInfiltrationLs >}} L/s, more than the plant's lowest dry-day flow in most months, so it is only a bound.]{.takeaway}
+:::
+:::
+
+[Minimum night-flow method (US EPA 2014), with the wastewater still in transit taken from the model. Paper SI, calibration.]{.src .tight}
+
+::: {.notes}
+The plant's dry-weather flow is seasonal: higher February to April, lower in late summer and autumn,
+consistent with seasonal groundwater. The model holds infiltration steady at the all-season median,
+so it sits above summer and below spring. A {{< var InfiltrationSharePct >}} % infiltration share is within reported ranges
+(20–55 % near Atlanta, 38–53 % in a Polish separate system, up to about 70 % with high groundwater).
+Non-residential flow enters in the commercial, institutional, and industrial zones with measured
+profiles, and dilutes without carrying biomarker.
+:::
+
+## The model reproduces the plant's diurnal swing on dry days
+
+::: {.columns}
+::: {.column width="62%"}
+![](figures/hydraulics.svg){.fig-fill}
+:::
+::: {.column width="38%"}
+[Model mean on day 3: {{< var HydDayThreeFlow >}}×10³ m³/d, {{< var HydModelOverPlantPct >}} % of the plant's dry-weather flow.]{.takeaway}
+
+[Maximum / mean: model {{< var HydMaxOverMean >}}, plant {{< var HydPlantMaxOverMean >}} (IQR {{< var HydPlantMaxOverMeanLo >}}–{{< var HydPlantMaxOverMeanHi >}}).]{.takeaway}
+
+[Minimum / mean: model {{< var HydMinOverMean >}}, plant {{< var HydPlantMinOverMean >}} (IQR {{< var HydPlantMinOverMeanLo >}}–{{< var HydPlantMinOverMeanHi >}}), matched by construction.]{.takeaway}
+
+[The household peak of {{< var DiurnalMax >}}× the mean arrives about an hour later at about half that height.]{.takeaway}
+:::
+:::
+
+[Plant: {{< var HydPlantPeakDays >}} dry days of the City's summaries, {{< var HydPlantFirstMonth >}} – {{< var HydPlantLastMonth >}}.]{.src .tight}
+
+::: {.notes}
+The model's peak is a little higher than the plant's, since the hourly household pattern is a
+lockdown-era smart-meter profile from England (Abu-Bakar et al. 2021), used for its shape only. Day 3
+repeats day 2: daily means differ by {{< var HydDayAgreeMeanPct >}} %. A 24 h composite integrates the day, so it depends on
+the daily totals, not the exact shape.
+:::
+
+## Appendix 4: Zoning {#app-4 .divider}
 
 [How the catchment is cut into zones.]{.divider-sub}
+
+[↩ All appendices](#appendix-index){.back-link}
 
 ## Zones are cut so the largest and smallest are as close in population as the network allows {.smaller}
 
@@ -934,25 +1223,91 @@ where it changes. A second pass breaks ties by the sum of squared share deviatio
 assignment is only for drawing zones; the representation fractions use the real splits.
 :::
 
-## Appendix 5: Transport {.divider}
+## Appendix 5: Transport {#app-5 .divider}
 
 [The operator from every release to every site.]{.divider-sub}
 
+[↩ All appendices](#appendix-index){.back-link}
+
 ## Advection, decay, and mixing are linear in the mass released, so one operator serves every scenario
 
+::: {.columns}
+::: {.column width="52%"}
+::: {.eq-small}
 $$
-C_s(t) = \sum_n \int G_{s,n}(t, t')\, R_n(t')\, e^{-k\, t_{\mathrm{tr}}}\, \mathrm{d}t'
+C_s(t) = \frac{1}{Q_s(t)} \sum_n \int G_{s,n}(t, t'; k)\, R_n(t')\, \mathrm{d}t'
 $$
-
-[Parcels are marched along the time-varying flows, split by flow at junctions, and binned at each site. Computed once from the hydraulics.]{.takeaway}
-
-::: {.callout-note}
-TO CHECK: the operator's notation against SI Section S4 before presenting.
 :::
 
-## Appendix 6: Information {.divider}
+[$G_{s,n}$: the fraction of a parcel released at node $n$ at time $t'$ that reaches site $s$ at $t$, times $e^{-k\,t_{\mathrm{tr}}}$ for its travel time. $Q_s$: the flow at the site.]{.takeaway}
+
+$$
+\frac{\partial C}{\partial t} + v\,\frac{\partial C}{\partial x} = -kC \quad\text{in each link}
+$$
+
+[Complete mixing at nodes; no dispersion. $v = Q/A$ from SWMM at every link and time.]{.takeaway}
+:::
+::: {.column width="48%"}
+::: {.app-steps}
+1. **Release** a parcel from every node every {{< var ReportStep >}} s over days 2 and 3, carrying $R_n(t')\,\Delta t$.
+2. **March** it through each link at the link's current velocity.
+3. **Split** it among a node's outlets in proportion to their flows.
+4. **Bin** its mass at each site between the two nearest output times.
+:::
+
+[Checked against the analytic single-pipe solution; mass is conserved to $10^{-12}$ without decay. Longest travel time {{< var TransMaxTravelH >}} h; the day-3 composite misses {{< var TransMissedMassPct >}} % of the shed mass.]{.takeaway}
+:::
+:::
+
+[Paper SI, transport operator. For an instantaneous sample, a row of $G$ is the adjoint state of Wagner et al. (2015); here it is built forwards, once for all sites.]{.src .tight}
+
+::: {.notes}
+Splitting parcels rather than routing them whole keeps the operator linear, so a composite for any
+shedding pattern is a weighted sum of the zone contributions C_{s,z}(k), which is what makes the
+design fast: one transport run, then every plan is linear algebra. The operator needs an acyclic
+network with one flow direction per link, so links are oriented by their mean flow and links that
+carry none are removed, which opens the two loops in the data. Decay enters only through travel
+times of hours, which is why the composite changes only {{< var TransDkMin >}}–{{< var TransDkMax >}} % per unit change in
+ln k (slide 9).
+:::
+
+## Population shares on the network would give nearly the same design, except where a pipe runs backwards
+
+::: {.columns}
+::: {.column width="56%"}
+| | Population shares on the graph | Transport model |
+|---|:-:|:-:|
+| Site-days to separate every pair | {{< var IncGreedyPop >}} | {{< var IncGreedyTransport >}} |
+| Hot zone named right, 7 days at every site | {{< var IncAllSevenPop >}} % | {{< var IncAllSevenTransport >}} % |
+
+: {.app-table}
+
+[Graph shares have no travel time, timing within the day, or decay; the transport model adds them, and they change little.]{.takeaway}
+:::
+::: {.column width="44%"}
+[**The one exception:** zone {{< var IncMaxZone >}} gives {{< var IncMaxWPct >}} % of the composite at {{< var IncMaxSite >}} in the transport model, and none on the graph.]{.takeaway}
+
+[A flat pipe between two maintenance holes at the same invert (register D33) flows against its drawn direction in the model, carrying part of the zone's sewage into that trunk.]{.takeaway}
+
+[Decay barely moves the plant's shares: within {{< var DecayOneMaxDiff >}} points of population up to {{< var DecayOneK >}} d⁻¹.]{.takeaway}
+:::
+:::
+
+[Paper SI, transport operator and robustness.]{.src .tight}
+
+::: {.notes}
+The comparison is at every candidate site: representation fraction from transport against the zone's
+share of the people upstream on the network graph, with splits shared by maximum flow. Agreement is
+close everywhere except the D33 pipe. Its direction should be asked of the City along with D24. At an
+extreme apparent loss rate of {{< var DecayKHi >}} per day, far zones fall to {{< var DecayHighMinRatio >}} and near zones rise to
+{{< var DecayHighMaxRatio >}} times their share, and the separation plan then needs fewer site-days (Appendix 10).
+:::
+
+## Appendix 6: Information {#app-6 .divider}
 
 [Fisher information, the Schur complement, and the greedy search.]{.divider-sub}
+
+[↩ All appendices](#appendix-index){.back-link}
 
 ## Every composite at a site adds the same row of sensitivities, weighted by its noise
 
@@ -976,76 +1331,532 @@ $$
 D_s = \ln\det\mathbf{S}
 $$
 
-[Rank of $\mathbf{S}$ depends on which sites are sampled, not on how often or how noisily. Zone SD: $\sqrt{[\mathbf{H}\mathbf{S}^{-1}\mathbf{H}^\top]_{zz}}$.]{.takeaway}
+[Subscript $n$: the nuisances $m$ and $\ln k$. Zone SD: $\sqrt{[\mathbf{H}\mathbf{S}^{-1}\mathbf{H}^\top]_{zz}}$.]{.takeaway}
 
 ::: {.notes}
-The subtracted term is the information spent telling contrasts from the level and decay. One
+The rank of S depends on which sites are sampled, not on how often or how noisily. The subtracted term is the information spent telling contrasts from the level and decay. One
 contrast, one nuisance: S = a − b²/c, zero when the two change the composites the same way.
+The response to the level is 1 because the representation fractions sum to one; the response to
+ln k comes from forward-mode automatic differentiation through the transport operator. F_prior is
+1/(ln 3)² at ln k, the prior spanning a factor of three either way.
 :::
 
-## Appendix 7: Hot-spot strength {.divider}
+## The Schur complement is exactly the contrasts' block of the inverse information
+
+::: {.columns}
+::: {.column width="55%"}
+::: {.eq-small}
+$$
+\mathbf{F} = \begin{pmatrix} \mathbf{F}_{\beta\beta} & \mathbf{F}_{\beta n} \\ \mathbf{F}_{n\beta} & \mathbf{F}_{nn} \end{pmatrix},
+\qquad
+\mathbf{F}^{-1} = \begin{pmatrix} \mathbf{X} & \mathbf{Y} \\ \mathbf{Y}^\top & \mathbf{Z} \end{pmatrix}
+$$
+
+Bottom block row of $\mathbf{F}\mathbf{F}^{-1} = \mathbf{I}$:
+
+$$
+\mathbf{F}_{n\beta}\mathbf{X} + \mathbf{F}_{nn}\mathbf{Y}^\top = \mathbf{0}
+\;\Rightarrow\;
+\mathbf{Y}^\top = -\mathbf{F}_{nn}^{-1}\mathbf{F}_{n\beta}\mathbf{X}
+$$
+
+Top block row:
+
+$$
+\left(\mathbf{F}_{\beta\beta} - \mathbf{F}_{\beta n}\mathbf{F}_{nn}^{-1}\mathbf{F}_{n\beta}\right)\mathbf{X} = \mathbf{I}
+\;\Rightarrow\;
+\mathbf{X} = \mathbf{S}^{-1}
+$$
+:::
+:::
+::: {.column width="45%"}
+[The bound for the contrasts is $\mathbf{S}^{-1}$, not $\mathbf{F}_{\beta\beta}^{-1}$: estimating the level and decay costs information.]{.takeaway}
+
+[$\mathbf{F}_{nn}$ is always invertible: every composite informs the level, and the prior informs the decay rate.]{.takeaway}
+
+[With one contrast and one nuisance, $S = a - b^2/c$. It is $a$ when $b = 0$, and zero (not identified) when $b^2 = ac$, i.e. the two parameters move the composites the same way.]{.takeaway}
+
+[For the linearized model with normal errors, weighted least squares reaches the bound.]{.takeaway}
+:::
+:::
+
+## Both greedy searches add one site-day at a time, ranking candidates lexicographically
+
+$$
+\mathbf{n}^{(t+1)} = \mathbf{n}^{(t)} + \mathbf{e}_{s_t},
+\qquad
+s_t = \operatorname*{arg\,lexmax}_s\; \mathbf{g}\!\left(\mathbf{n}^{(t)} + \mathbf{e}_s\right),
+\qquad \mathbf{n}^{(0)} = \mathbf{e}_{\text{plant}}
+$$
+
+::: {.columns}
+::: {.column width="50%"}
+**Precision plan** (slide 12)
+
+::: {.eq-small}
+$$
+\mathbf{g}_P = \Big( \operatorname{rank}\mathbf{S},\; D_s,\; \ln\det(\mathbf{F} + \varepsilon\mathbf{I}) \Big)
+$$
+:::
+
+[$\varepsilon = {{< var GreedyRidge >}}$ keeps the last term finite while $\mathbf{F}$ is singular; it decides the steps before full rank, when $D_s = -\infty$ for every candidate.]{.takeaway}
+:::
+::: {.column width="50%"}
+**Separation plan** (slide 13)
+
+::: {.eq-small}
+$$
+\mathbf{g}_H = \Big( \#\{\delta_{ij} \ge 2\},\; \sum_{i \ne j} \min(\delta_{ij}/2,\, 1),\; \min_{i \ne j} \delta_{ij} \Big)
+$$
+:::
+
+[Stops when every pair is separated, or after {{< var GreedyHotCap >}} steps.]{.takeaway}
+:::
+:::
+
+[Check against the exact optimum of the relaxed problem (fractional site-days, convex for the fair plan's minimax): from 45 site-days the greedy fair plan is within {{< var EqRelaxGapLo >}}–{{< var EqRelaxGapHi >}} % of the best possible worst zone.]{.takeaway}
+
+::: {.notes}
+Lexicographic: take the largest first component, break ties on the second, then the third. Greedy
+never revisits a choice, so it can be beaten; the relaxed check shows how far. At 14 site-days it is
+far from the relaxed optimum ({{< var EqGreedyFourteen >}} against {{< var EqRelaxFourteen >}}), because the optimum spreads
+fractions of a day over sites in a way whole days cannot copy. Code: scenarios/greenway_design.py.
+:::
+
+## Telling every pair apart takes {{< var DesignFullSiteDays >}} site-days; one day at every site tells {{< var DesignAllOnePairsPct >}} % apart
+
+![](figures/design_pairs.svg){.fig-fill style="max-height:430px"}
+
+[{{< var HotSpotFactor >}}-fold hot spot. {{< var DesignTenDays >}} site-days at {{< var DesignTenDaysSites >}} sites separate {{< var DesignTenDaysPairsPct >}} % of pairs.]{.src .tight}
+
+::: {.notes}
+The pair-separation curve behind slide 13: the separation plan, site-day by
+site-day, against the plant and its arriving sewers alone and one day at every site.
+:::
+
+## With normal noise, the separation plan's wrong guesses fall on the next zone along the same branch
+
+![](figures/confusion.svg){.fig-fill style="max-height:420px"}
+
+[Simplest case: normal noise, no background, hot-spot strength known; {{< var LocNRep >}} runs per zone. Rows sum to one.]{.src .tight}
+
+::: {.notes}
+Each row is a zone made hot, {{< var HotSpotFactor >}}-fold; each column the zone the best guess
+names. The diagonal is a right guess. The plant and its arriving sewers can only tell the four
+streams apart, so whole blocks blur. The separation plan of {{< var DesignFullSiteDays >}} site-days is
+right {{< var LocGreedyFullCorrect >}} % of the time, and its misses are mostly neighbours: zone 10
+named for 08 or 09, 05 for 04, 01 for 07, 06 for 05, 10 for 11, neighbours on the same branch of the
+drainage tree (slide 8), whose composites differ only at the site between them. Seven days at every
+site raises it to {{< var LocAllSevenCorrect >}} %; what is left is mostly between 05, 06, and 07 and
+between 10 and 11. With realistic noise these shares fall further (slide 15).
+:::
+
+## Appendix 7: Hot-spot strength {#app-7 .divider}
+
+[Why κ = {{< var HotSpotFactor >}}, and what weaker hot spots look like.]{.divider-sub}
+
+[↩ All appendices](#appendix-index){.back-link}
 
 ## A 2–3-fold excess is typical of a worse-off neighbourhood; 5–10-fold of an early local outbreak
 
 - Case rates in the most affected parts of Toronto and of Louisville sewersheds: about 1.5–3.5 times the city or county, over weeks to months.
 - N1/PMMoV in sewersheds of 10,000–20,000 people in one city: 5–9-fold apart.
 - Much larger ratios only at sites of a few hundred people.
-- The design uses κ = {{< var HotSpotFactor >}}; results are given for κ from 2 to 10.
+- The design uses κ = {{< var HotSpotFactor >}}; results are given for κ from 2 to 10 (slide 18).
 
-## Appendix 8: Posterior and site choice {.divider}
+[Direct evidence on one neighbourhood of 10,000–25,000 people against the rest of a city is thin.]{.takeaway}
 
-## Each morning's sites separate the hypotheses still in contention
+[Rao et al. 2021 (Toronto), Yeager et al. 2021 (Louisville), Baldwin et al. 2023 (N1/PMMoV), Haak et al. 2022 (small sites). Paper SI, hot-spot strength.]{.src .tight}
+
+::: {.notes}
+kappa is the shedding per person of the hot zone relative to the others. The ratios are read from
+the cited figures and tables. At kappa = 2 the held campaign mostly ends with no name
+({{< var KappaAdaptTwoInconclusive >}} % of runs) rather than a wrong one.
+:::
+
+## Appendix 8: Posterior and site choice {#app-8 .divider}
+
+[The evidence for each hypothesis, a worked example, and the site-choice score.]{.divider-sub}
+
+[↩ All appendices](#appendix-index){.back-link}
+
+## Each day's sites separate the hypotheses still in contention
 
 $$
 U(s) = \sum_{h,h'} p_h\, p_{h'} \left[1 - \exp\!\left(-\frac{\delta_{hh'}(s)^2}{8}\right)\right]
 $$
 
 $$
-p(\mathbf{y}\mid h) = \int p(\mathbf{y}\mid h, \mu, \mathbf{u})\, p(\mathbf{u})\, \mathrm{d}\mu\, \mathrm{d}\mathbf{u}
-\quad\text{(Laplace)}
+\omega_s(n_s) = \frac{n_s}{\sigma_s^2 + n_s\, \tau^2 \sum_z W_{s,z}^2},
+\qquad
+\delta_{hh'}^2 = \sum_s \omega_s \Delta_{s,hh'}^2 - \frac{\left(\sum_s \omega_s \Delta_{s,hh'}\right)^2}{\sum_s \omega_s}
 $$
 
-[The exponential is the Bhattacharyya overlap of two normals $\delta$ apart. The background is added to each site's variance so repeat days don't average it out.]{.takeaway}
+[The exponential is the Bhattacharyya overlap of two normals $\delta$ apart. The background enters each site's variance, so repeat days don't average it out.]{.takeaway}
 
-## Appendix 9: Noise {.divider}
+[The sum runs over pairs naming different hot zones; weighting by $p_h p_{h'}$ serves the probable pairs not yet separated.]{.takeaway}
+
+::: {.notes}
+delta_hh'(s) is the separation from every composite chosen or in progress plus one more at site s.
+Sites are chosen one at a time, so a second site that day sees the first. A site can be chosen
+twice in one day if it holds two composites. With tau = 0, omega_s reduces to n_s / sigma_s^2 of
+the fixed-plan separation (slide 13).
+:::
+
+## A hypothesis's evidence is its misfit plus a curvature term, by Laplace's approximation
+
+::: {.columns}
+::: {.column width="58%"}
+::: {.eq-small}
+$$
+r_c = y_c - Y_{s,h} - \mathbf{x}_{h,c}^{\mathsf T}\boldsymbol\theta,
+\qquad
+\boldsymbol\theta = (\mu, \mathbf{u})
+$$
+
+$$
+L_h(\boldsymbol\theta) = \sum_c \frac{\nu_s+1}{2} \ln\!\left(1 + \frac{r_c^2}{\nu_s \gamma_s^2}\right) + \frac{1}{2\tau^2}\sum_z u_z^2
+$$
+
+$$
+\ln p(\mathbf{y}\mid h) \approx -L_h(\hat{\boldsymbol\theta}_h) - \tfrac12 \ln\det \mathbf{A}_h + \text{const}
+$$
+
+$$
+\mathbf{A}_h = \sum_c \frac{\nu_s+1}{(\nu_s+3)\gamma_s^2}\, \mathbf{x}_{h,c}\mathbf{x}_{h,c}^{\mathsf T} + \mathbf{P}
+$$
+:::
+:::
+::: {.column width="42%"}
+[**Hypotheses:** {{< var ZoneCount >}} zones × κ in {{< var AdaptKappaList >}}: {{< var AdaptHypotheses >}}, equally likely a priori.]{.takeaway}
+
+[**Scale:** $\gamma_s = \sigma_s\,\Phi^{-1}(0.75)/t_{\nu_s}^{-1}(0.75)$, the same median absolute deviation as the normal error.]{.takeaway}
+
+[**Mode:** iteratively reweighted least squares, weights $(\nu_s+1)/(\nu_s\gamma_s^2 + r_c^2)$, {{< var AdaptIRLSSteps >}} steps. A wild composite gets a small weight.]{.takeaway}
+
+[**Curvature:** the expected Student-$t$ information, so $\mathbf{A}_h$ stays positive definite however far a composite lies. $\mathbf{P} = \operatorname{diag}(\epsilon, \tau^{-2}, \dots)$.]{.takeaway}
+:::
+:::
+
+::: {.notes}
+Averaging over mu and u, rather than plugging in their best values, penalizes a hypothesis that fits
+only if some zone happens to run high, since such u have little prior probability. A large residual
+adds to L only through a logarithm, so one wild composite can't decide between hypotheses on its own.
+The level's prior is flat; the code uses a tiny precision in its place, far below what any
+composite gives. Simplest case (normal errors, no background, kappa known): A_h is the same
+for every h and cancels, and the best guess is the maximum-likelihood hypothesis.
+:::
+
+## In the example campaign, one low composite rules out zone {{< var WkLowZone >}} on day {{< var WkMorningOne >}}; by day {{< var WkMorningNamed >}} zone {{< var WkHotZone >}} fits best
+
+::: {.columns}
+::: {.column width="50%"}
+[Day {{< var WkMorningOne >}}, {{< var WkCompositesOne >}} composites]{.panel-head}
+
+[{{< var WkLowSite >}}, whose flow is {{< var WkLowShare >}} from zone {{< var WkLowZone >}}, reads {{< var WkLowSiteRel >}} below the plant on the log scale. A hot spot there would have raised it.]{.takeaway}
+
+[Best misfit naming zone {{< var WkLowZone >}}: {{< var WkLowMisfit >}}, against about {{< var WkOtherMisfit >}} for most others. $P_z$ for zone {{< var WkLowZone >}} falls from {{< var LocChance >}} % to {{< var WkLowP >}} %; the rest share the remainder almost equally.]{.takeaway}
+:::
+::: {.column width="50%"}
+[Day {{< var WkMorningNamed >}}, {{< var WkCompositesNamed >}} composites]{.panel-head}
+
+[Zone {{< var WkHotZone >}} with κ = {{< var WkHotKappa >}} has misfit {{< var WkHotMisfit >}}; every other zone's best is at least {{< var WkNextMisfit >}}.]{.takeaway}
+
+[A misfit larger by $\Delta L$ multiplies the odds by $e^{-\Delta L}$, so $P_z$ for zone {{< var WkHotZone >}} reaches {{< var WkHotP >}} %: named.]{.takeaway}
+
+[The curvature term differs between zones by at most {{< var WkLogdetSpreadNamed >}}: the misfit decides.]{.takeaway}
+:::
+:::
+
+[The held campaign of slides 14 and 16, rerun with the same seed and its log posterior split into terms. Paper SI, worked example.]{.src .tight}
+
+::: {.notes}
+Only differences between composites matter, since the level is unknown, so values are relative to
+the plant composite. Day 4 has the plant and two upstream composites. The low reading at the
+arriving sewer that is mostly zone 12 makes "zone 12 is hot" the worst explanation; three composites
+can't yet tell the others apart. By the naming day the gap between zone 9 and its best rival is
+about five units of misfit, odds of roughly e^5 to one, summed over the hypothesis strengths.
+:::
+
+## The example campaign returns to zone 09's outlet and its arriving sewer once their results come back high
+
+![](figures/example_campaign.svg){.fig-fill}
+
+[Left: each zone's probability by day. Right: the composites analyzed each lab day; orange sites receive zone 09's flow.]{.src .tight}
+
+::: {.notes}
+The static version of the campaign on slide 16. Results are known {{< var LagTurnaround >}} days after
+the lab starts them, so the right panel runs two days ahead of the left.
+:::
+
+## Appendix 9: Noise {#app-9 .divider}
+
+[Variance components of a composite, and the tails of its errors.]{.divider-sub}
+
+[↩ All appendices](#appendix-index){.back-link}
+
+## The day-to-day part dominates the noise at both sites, so an upstream composite is noisier
+
+::: {.columns}
+::: {.column width="50%"}
+$$
+y_{dbq} = \mu(t_d) + e_d + e_{db} + e_{dbq}
+$$
+
+$$
+\sigma = \Big(\sigma_d^2 + \tfrac{1}{2}\big(\sigma_b^2 + \tfrac{1}{3}\sigma_q^2\big)\Big)^{1/2}
+$$
+
+[Day $d$, replicate $b$, qPCR well $q$; the trend $\mu$ is the median of the {{< var NoiseTrendDates >}} neighbouring dates, the date itself left out. Robust method of moments.]{.takeaway}
+:::
+::: {.column width="50%"}
+| N1, final extraction protocol | Plant | Hospital |
+|---|:-:|:-:|
+| Day to day, $\sigma_d$ | {{< var NoisePlantDayPost >}} | {{< var NoiseHospDayPost >}} |
+| Replicate, $\sigma_b$ | {{< var NoisePlantBiorepPost >}} | |
+| qPCR, $\sigma_q$ | {{< var NoisePlantQpcrPost >}} | |
+| **Reported value, $\sigma$** | **{{< var NoisePlantSigmaTwoPost >}}** | **{{< var NoiseHospSigmaTwoPost >}}** |
+| Classical estimate | {{< var NoisePlantSigmaTwoClassicalPost >}} | {{< var NoiseHospSigmaTwoClassicalPost >}} |
+| Divided by PMMoV | {{< var NoisePlantSigmaTwoPMMoVPost >}} | {{< var NoiseHospSigmaTwoPMMoVPost >}} |
+| Check, 4-day differences | {{< var NoisePlantDayLagPost >}} | {{< var NoiseHospDayLagPost >}} |
+
+: {.app-table}
+:::
+:::
+
+[Across monitored plants the log noise falls with population with slope {{< var NoiseScaleSlope >}}, far from the −0.5 of independent shedders: a size-free part dominates.]{.src .tight}
+
+::: {.notes}
+All values use the final extraction protocol: {{< var NoisePlantDaysPost >}} sampling dates at the plant. PMMoV normalization raises the
+noise at both sites, so it adds variation of its own here; the design is for dry weather, when
+dilution changes little. The classical estimates are larger because the errors are heavy-tailed;
+with them, the separation plan needs {{< var SweepClassicalGreedy >}} site-days and the median adaptive campaign
+{{< var SweepClassicalAdapt >}}. The hospital's lag check is lower than its trend estimate, so the upstream
+noise may be somewhat high. The hospital sampler sees part of the hospital site only, through private
+connections not in the City data.
+:::
 
 ## The daily errors have heavier tails than a normal
 
 ![](figures/noise_tails.svg){.fig-fill}
 
-## Appendix 10: Robustness and campaign settings {.divider}
+[Fitted Student-$t$: $\nu$ = {{< var NoiseTailNuPlant >}} at the plant (90 %: {{< var NoiseTailNuPlantLo >}}–{{< var NoiseTailNuPlantHi >}}), {{< var NoiseTailNuHosp >}} at the hospital ({{< var NoiseTailNuHospLo >}}–{{< var NoiseTailNuHospHi >}}). Beyond {{< var NoiseTailCut >}}× the typical spread at the plant: data {{< var NoiseTailBeyondPlant >}} %, Student-$t$ {{< var NoiseTailBeyondPlantT >}} %, normal {{< var NoiseTailBeyondPlantNormal >}} %.]{.takeaway}
+
+::: {.notes}
+A maximum-likelihood fit is biased here: the series are short, and each residual carries the error
+of its trend, which makes it look more normal. So the fitted nu is corrected by simulation through
+the same trend removal (raw fits {{< var NoiseTailNuPlantRaw >}} and {{< var NoiseTailNuHospRaw >}}), with a parametric bootstrap for
+the range. The campaigns use nu = {{< var AdaptNuPlant >}} at the plant and its arriving sewers and {{< var AdaptNuUp >}} upstream; the
+hospital stands in for every upstream site, since no other small sewershed has data.
+:::
+
+## Appendix 10: Robustness and campaign settings {#app-10 .divider}
+
+[What changes the effort, and how the campaigns respond to their settings.]{.divider-sub}
+
+[↩ All appendices](#appendix-index){.back-link}
+
+## The separation plan's {{< var RobBiasZero >}} site-days are most sensitive to a persistent bias at each site
+
+::: {.columns}
+::: {.column width="52%"}
+| Assumption | Site-days to separate every pair |
+|---|:-:|
+| Main analysis | {{< var RobBiasZero >}} |
+| Site bias $b$ = {{< var RobBiasLevelList >}} | {{< var RobBiasOne >}}, {{< var RobBiasTwo >}}, {{< var RobBiasThree >}} |
+| Decay {{< var DecayKLo >}} → {{< var DecayKHi >}} d⁻¹ | {{< var DecayGreedyAtKLo >}} → {{< var DecayGreedyAtKHi >}} |
+| Population shares on the graph | {{< var IncGreedyPop >}} |
+| Classical (not robust) noise | {{< var SweepClassicalGreedy >}} |
+
+: {.app-table}
+
+[A bias the same every day sets a floor no number of days removes: at $b = 0.2$ the least certain zone stays at {{< var RobFloorAllTwo >}} ln units.]{.takeaway}
+:::
+::: {.column width="48%"}
+[**Population error** (blocks vs. areas): {{< var RobPopAccLo >}}–{{< var RobPopAccHi >}} % right against {{< var RobPopNoneOne >}} % without it; no effect detected.]{.takeaway}
+
+[**Drifting truth** (level random walk, zones AR(1)): {{< var RobPanelAccPct >}} % right takes {{< var RobPanelEightDays >}} days at {{< var RobPanelKHigh >}} sites a day, {{< var RobPanelFourDays >}} at {{< var RobPanelKLow >}}.]{.takeaway}
+
+[**Finer zones**, sites decoupled, {{< var ZoneResBudget >}} site-days: named {{< var ZoneResFour >}}, {{< var ZoneResEight >}}, {{< var ZoneResThirteen >}}, {{< var ZoneResTwenty >}}, and {{< var ZoneResTwentySix >}} % of the time for {{< var ZoneResFourN >}}, {{< var ZoneResEightN >}}, {{< var ZoneResThirteenN >}}, {{< var ZoneResTwentyN >}}, and {{< var ZoneResTwentySixN >}} zones.]{.takeaway}
+
+[**A hot spot in part of a zone** (2,000–5,000 people): the right zone only {{< var SubZoneHot >}} % of the time at {{< var SubZoneSiteDays >}} site-days.]{.takeaway}
+:::
+:::
+
+[Paper SI, robustness of the hot-spot design.]{.src .tight}
+
+::: {.notes}
+The site bias stands for flow-model error in the representation fractions: one offset per site,
+the same every day, integrated out of the separation. Its effect on the adaptive campaigns' names is
+on the mismatch results (slide 18): small up to 0.2. Faster decay helps a fixed
+plan because it sharpens the contrast between near and far zones, but the plant still identifies the
+same contrasts. Including the plant in every day's panel as a reference doesn't shorten the drifting
+campaigns ({{< var RobPanelEightDaysNoRef >}} and {{< var RobPanelFourDaysNoRef >}} days without one).
+:::
 
 ## The effort depends strongly on the noise of an upstream composite
 
-![](figures/sigma_sweep.svg){.fig-fill}
+![](figures/sigma_sweep.svg){.fig-fill style="max-height:330px"}
+
+[Upstream σ from {{< var SweepUpLo >}} to {{< var SweepUpHi >}}: the separation plan needs {{< var SweepGreedyLo >}} to {{< var SweepGreedyHi >}} site-days and the median adaptive campaign {{< var SweepAdaptLo >}} to {{< var SweepAdaptHi >}} (results the same day, not the held campaign of the talk). Dotted: the measured value.]{.takeaway}
 
 ## More composites a day shorten a campaign
 
 ![](figures/campaign_length.svg){.fig-fill}
 
-[With two hot zones, the campaign names one in {{< var OneZoneTwoHotAlone >}} % of runs and stops, with no sign of the second.]{.takeaway}
+[Held composites: one upstream analysis a day names the hot zone in {{< var HeldKOneCorrect >}} % of runs over {{< var HeldKOneDays >}} days; four in {{< var HeldKFourCorrect >}} % over {{< var HeldKFourDays >}}.]{.takeaway}
 
-## Appendix 11: Laboratory limits {.divider}
 
-## The lab's limits cost little at Greenway's concentrations
+## Allowing for a second hot zone keeps first names right, but a zone is rarely confirmed as the only one
 
-::: {.callout-note}
-FIGURE NEEDED: share named against plant concentration with sLOD and sLOQ (paper fig_si_limits).
+![](figures/multi_zone.svg){.fig-fill style="max-height:400px"}
+
+[The talk's one-zone analysis, given two hot zones, names one in {{< var OneZoneTwoHotAlone >}} % of runs and stops, with no sign of the second.]{.takeaway}
+
+[Every pair of zones added as hypotheses ({{< var AdaptHypothesesTwo >}} in all), with one and two hot zones each {{< var AdaptPTwoPct >}} % a priori. Paper SI, two hot zones.]{.src .tight}
+
+::: {.notes}
+The pass-through zones are seen only as the difference between two sites that each mix several zones,
+so ruling out a second, weaker hot zone takes far more composites than naming the first. A
+campaign can name a hot zone but can seldom say it is the only one.
 :::
 
-## Appendix 12: Equity alternatives {.divider}
+## Appendix 11: Laboratory limits {#app-11 .divider}
 
-## Neither a zoning by marginalization nor a wider pool of sites removes the pass-through disadvantage
+[Censored composites near the sample limits of detection (sLOD) and quantification (sLOQ).]{.divider-sub}
 
-::: {.callout-note}
-FIGURES NEEDED: the ON-Marg zoning map and the wider candidate pool map (paper fig_zones_onmarg,
-fig_candidates).
+[↩ All appendices](#appendix-index){.back-link}
+
+## The lab's limits cost little at Greenway's concentrations, which stay well above the sLOD
+
+::: {.columns}
+::: {.column width="64%"}
+![](figures/limits.svg){.fig-fill style="max-height:420px"}
+:::
+::: {.column width="36%"}
+[Adaptive campaign above the sLOD: {{< var DetAdaptHighLo >}}–{{< var DetAdaptHighHi >}} % against {{< var DetAdaptNoLimitCorrect >}} % with no limits; {{< var DetAdaptThreeHundredCorrect >}} % at {{< var DetCpMin >}} gc/L. The plant was quantified on {{< var DetPlantQuant >}} % of {{< var DetPlantDates >}} dates with the final extraction protocol.]{.takeaway}
+
+[Dashed: every composite below the sLOQ treated alike, without the sLOD.]{.takeaway}
+:::
 :::
 
-## Appendix 13: Reproducibility {.divider}
+[Sample limits of detection (sLOD) {{< var DetLOD >}} and quantification (sLOQ) {{< var DetLOQ >}} gene copies per litre (1 and 2.5 per qPCR reaction). Censored composites enter through the Student-$t$ probability of their interval.]{.src .tight}
+
+::: {.notes}
+Near the limits the absolute concentration matters, so it is anchored on the plant's N1 under
+uniform shedding, and every site is a known multiple of it: {{< var DetRhoLo >}} to {{< var DetRhoHi >}} across the
+candidate sites, so they reach the limits at about the same point. Below the sLOQ a composite is
+known only to lie in [sLOD, sLOQ) or below the sLOD. Using the sLOD is worth it: treating everything
+below the sLOQ alike drops the adaptive share at the sLOD to {{< var DetLoqAdaptThousandCorrect >}} % (dashed lines).
+Prevalence is shown only as an illustration, since shedding rates are uncertain by a factor of
+{{< var DetShedRatio >}}: a plant concentration at the sLOD is about {{< var DetPrevThousand >}} % prevalence at the clinical
+rate. The hospital sewershed was quantified on {{< var DetHospQuant >}} % of dates (median {{< var DetHospMedian >}} gc/L,
+against {{< var DetPlantMedian >}} at the plant).
+:::
+
+## Appendix 12: Equity alternatives {#app-12 .divider}
+
+[A zoning by marginalization, and a wider pool of candidate sites.]{.divider-sub}
+
+[↩ All appendices](#appendix-index){.back-link}
+
+## Zoning by marginalization lifts the score's between-zone share only from {{< var EqRSqMain >}} to {{< var EqRSqOnm >}}
+
+::: {.columns}
+::: {.column width="44%"}
+![](figures/zones_onmarg.png){.fig-fill .figctr style="height:440px;width:auto;max-height:440px"}
+:::
+::: {.column width="56%"}
+[Marginalized and other neighbourhoods drain to the same branches. Within a zone, the median spread of material resources scores is {{< var EqMatWithin >}}; between zones, {{< var EqMatBetween >}}.]{.takeaway}
+
+[Even zones down to 2 % of the catchment reach only {{< var EqRSqOnmTwo >}}: about two-thirds of the variation lies within any zoning the network allows.]{.takeaway}
+
+[The most marginalized zone gets its own site, but the zones between trunk sites are still worst, {{< var AltOnmStartRatio >}}× the best.]{.takeaway}
+
+[Every zone within a factor of {{< var EqTargetLoose >}}: {{< var AltOnmMmFactorThree >}} site-days (main zoning {{< var EqFactorThreeMm >}}). Every pair separated: {{< var AltOnmHotSiteDays >}} (main {{< var DesignFullSiteDays >}}).]{.takeaway}
+:::
+:::
+
+[p-regions problem (Duque et al. 2011) solved exactly as a mixed-integer program; zones of {{< var AltZoneLoPct >}}–{{< var AltZoneHiPct >}} % of the people. Paper SI, alternative zoning.]{.src .tight}
+
+::: {.notes}
+Same eligible nodes and drainage trees as the main zoning, but cuts chosen to make each zone as
+uniform as possible in the material resources score: minimize the sum over pairs of units sharing a
+zone of p_i p_j (x_i − x_j)². R² is the share of the variance of the score among all residents that
+lies between zones. Student areas: {{< var EqStudentDAs >}} DAs with at least {{< var EqStudentThresholdPct >}} % aged 15–24 hold about
+{{< var EqStudentPeople >}} people, at most {{< var EqStudentZoneShare >}} % of a zone, and don't score above the other DAs, so they
+are kept.
+:::
+
+## A wider pool of sites helps, but some zones still have no site that sees most of their people
+
+::: {.columns}
+::: {.column width="52%"}
+![](figures/candidates.png){.fig-fill .figctr style="height:440px;width:auto;max-height:440px"}
+:::
+::: {.column width="48%"}
+[{{< var PoolCandidates >}} candidates inside the main zones: pumping stations, flow-monitoring and off-road maintenance holes without drops; {{< var PoolDropped >}} dropped below {{< var EqPoolMinPop >}} people.]{.takeaway}
+
+[Every pair separated in {{< var AltPoolHotSiteDays >}} site-days at {{< var AltPoolHotSites >}} sites ({{< var PoolHotNewSites >}} new), against {{< var DesignFullSiteDays >}}. Every zone within a factor of {{< var EqTargetLoose >}} in {{< var AltPoolMmFactorThree >}}, against {{< var EqFactorThreeMm >}}.]{.takeaway}
+
+[Zones {{< var PoolNoEightyZones >}} have no candidate that sees {{< var PoolSeePct >}} % of the zone: their people enter along the trunk sewer itself.]{.takeaway}
+
+[The best fair plan of {{< var PoolFigSiteDays >}} site-days still spends {{< var PoolTopTwoPct >}} % of its days at {{< var PoolTopTwoSites >}}.]{.takeaway}
+:::
+:::
+
+[Filled: sites where the best fractional fair plan spends at least half a day. Paper SI, candidate sites.]{.src .tight}
+
+::: {.notes}
+Off-road (boulevard, park, sidewalk, City land) is this study's access choice; no drop structure is
+the City's rule for its sampling maintenance holes. A site's population is judged by its share of the
+plant's modelled flow, not the graph count, which would credit a site below a split with everyone
+above it. A site that sees only part of a zone is still taken to measure the zone's shedding, which
+flatters it; the population floor limits this. The adaptive campaigns were not rerun on this pool.
+:::
+
+## Appendix 13: Cross-site checks and reproducibility {#app-13 .divider}
+
+[What the paired plant and hospital composites say, and how to rebuild everything.]{.divider-sub}
+
+[↩ All appendices](#appendix-index){.back-link}
+
+## A hospital surge barely moves the plant, and lab error shared between sites is small for N1
+
+::: {.columns}
+::: {.column width="50%"}
+[Hospital and plant]{.panel-head}
+
+[On {{< var DilPairedDates >}} paired dates the hospital's N1 is a median {{< var DilRatio >}}× the plant's.]{.takeaway}
+
+[For an assumed hospital flow of 250–1,000 m³/d, its share of the plant's N1 load is {{< var DilWLo >}}–{{< var DilWHi >}} %. A 95th-percentile excursion, {{< var DilExcursionFactor >}}× its trend, moves the plant {{< var DilShiftLo >}}–{{< var DilShiftHi >}} %.]{.takeaway}
+
+[The regression slope of plant on hospital residuals, {{< var DilSlope >}} ({{< var DilSlopeLo >}}–{{< var DilSlopeHi >}}), is far larger than that share: it measures shared variation such as the lab batch, not hospital sewage.]{.takeaway}
+:::
+::: {.column width="50%"}
+| Same-batch correlation with Greenway | PMMoV | N1 |
+|---|:-:|:-:|
+| Another London plant | {{< var BatchPostVxPm >}} | {{< var BatchPostVxNone >}} |
+| Victoria Hospital sewershed | {{< var BatchPostVictPm >}} | {{< var BatchPostVictNone >}} |
+
+: {.app-table}
+
+[Final extraction protocol. For the N1 design, a batch correlation of about 0.2 is a reasonable upper value.]{.takeaway}
+:::
+:::
+
+[PMMoV carries no epidemic signal, so a shared PMMoV residual points to the lab or the weather. Paper SI, cross-site checks.]{.src .tight}
+
+::: {.notes}
+The hospital flow hasn't been measured; 250–1,000 m³/d is an assumption to replace with hospital
+data if obtained. Plant and hospital PMMoV are correlated on same-batch dates
+(n = {{< var BatchPostVictPmN >}}, interval {{< var BatchPostVictPmLo >}}–{{< var BatchPostVictPmHi >}}), but it rests on one pair of sites and isn't seen
+between the two plants. The design takes composite errors as independent.
+:::
 
 ## Every number and figure here is drawn from the paper's result files
 
 - Paper repository: analysis scripts, network model, pinned environment (link at release).
 - This deck: `scripts/sync_from_paper.py` copies the result files; `scripts/talk_figures.py` draws every figure from them.
 - Numbers on the slides are the paper's own generated values.
+- `swmmbuilder`, the open-source package that builds the SWMM model from a city's GIS layers (DeGroot Research Group).

@@ -42,6 +42,7 @@ MANIFEST = [
     "hydraulics/greenway/outlet_flow_day3.csv",
     "hydraulics/greenway/node_loading.csv",
     "data/plant/greenway_daily_mps.csv",
+    "data/london_data_issues.csv",
     "scenarios/zones/zones_proposed.csv",
     "scenarios/zones/zones_summary.csv",
     "scenarios/greenway/sensitivities.npz",
@@ -220,8 +221,10 @@ def export_blocks(paper: Path, net, sub) -> None:
 
 
 def tex_to_text(v: str) -> str:
-    """A macro's body as plain slide text: thousands separators, thin spaces, en dashes."""
+    """A macro's body as plain slide text: thousands separators, thin spaces, en dashes, zone numbers."""
     v = v.replace("{,}", ",").replace("\\,", "\u2009").replace("--", "\u2013").replace("~", "\u00a0")
+    # Zone IDs as the talk writes them: the paper's "Z09" becomes "09", and the slide says "zone 09".
+    v = re.sub(r"\bZ(\d\d)\b", r"\1", v)
     return v.strip()
 
 

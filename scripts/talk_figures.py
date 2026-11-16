@@ -17,6 +17,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)  # Source Sans Pro is for the browser
+import matplotlib.patheffects
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -163,10 +164,83 @@ def fig_catchment():
     x, y = n.xy(PLANT)
     ax.scatter([x], [y], s=260, marker="*", color=ORANGE, edgecolor="white", linewidths=1.2, zorder=10)
     ax.annotate("treatment plant", (x, y), xytext=(-14, -26), textcoords="offset points", ha="right",
-                fontsize=14, color=INK, zorder=11)
+                fontsize=14, color=INK, zorder=11,
+                path_effects=[matplotlib.patheffects.withStroke(linewidth=3.5, foreground="white")])
     n.frame(ax)
-    ax.legend(handles=width_legend(colour=PURPLE), loc="lower left", bbox_to_anchor=(0.98, 0.0), fontsize=13)
+    xmin, xmax = ax.get_xlim()
+    ax.set_xlim(xmin, xmax + 500)  # a little more room in the north-east corner for the legend
+    ax.legend(handles=width_legend(colour=PURPLE), loc="upper right", bbox_to_anchor=(1.2, 1.0),
+              fontsize=11, frameon=True, facecolor="white",
+              edgecolor="none", framealpha=0.9, borderpad=0.3, handletextpad=0.4, labelspacing=0.5,
+              borderaxespad=0.2)  # as on the zones map: the north-east corner, partly past the map's edge
     save(fig, "catchment", raster=True)
+
+
+def fig_dilution(zone="Z09"):
+    """Slide 2: one neighbourhood's share of the composite at each sampling point on its way to the plant
+    (the representation fractions W along the path of largest flow), beside a map of that path. Kept
+    generic (no zone numbers or site IDs): zones are introduced later in the talk."""
+    from matplotlib.collections import LineCollection
+    n = Net()
+    W, _ = sens()
+    s = zones_summary().set_index("zone")
+    _, hulls = zone_colours(n)
+    down = n.pipes.sort_values("up_pop", ascending=False).drop_duplicates("from_node").set_index("from_node")
+    node, path, segs = s.at[zone, "cut_node"], [], []
+    path.append(node)
+    while node != PLANT:  # follow the pipe carrying the most people, as for the zone tree
+        r = down.loc[node]
+        segs += [np.asarray(p.coords) for p in getattr(r.geometry, "geoms", [r.geometry])]
+        node = r.to_node
+        path.append(node)
+    stops = [p for p in path if p in W.index]
+    total = int(round(s.population.sum()))
+    pop = {p: int(down.loc[p].up_pop) if p in down.index else total for p in stops}
+    zone_of = {c: z for z, c in s["cut_node"].items() if z != "rest"}
+
+    def name(p):
+        if p == PLANT:
+            return "The treatment plant"
+        if p in STREAMS:
+            return "A trunk sewer arriving at the plant"
+        return "Where its sewers leave it" if zone_of[p] == zone else "Further downstream"
+    fig = plt.figure(figsize=(11, 4.0))
+    ax = fig.add_axes([0.0, 0.0, 0.30, 1.0])
+    n.basemap(ax, scale=0.5)
+    ax.add_collection(n.pipes_lc(["#c9c6c0"] * len(n.pipes), wmin=0.15, wmax=2.2))
+    h = hulls[zone]
+    for part in getattr(h, "geoms", [h]):
+        x, y = part.exterior.xy
+        ax.fill(x, y, color=ORANGE, alpha=0.22, lw=0, zorder=3)
+        ax.plot(x, y, color=ORANGE, lw=1.2, zorder=4)
+    ax.add_collection(LineCollection(segs, colors=ORANGE, linewidths=3.2, zorder=6))
+    for i, p in enumerate(stops, 1):
+        x, y = n.xy(p)
+        dark = p == PLANT
+        ax.scatter([x], [y], s=300, color=INK if dark else "white", edgecolor=INK, linewidths=1.6, zorder=8)
+        ax.text(x, y, str(i), ha="center", va="center", fontsize=11, fontweight="bold",
+                color="white" if dark else INK, zorder=9)
+    # the half of the catchment the path crosses: path and zone with a margin
+    xs = np.concatenate([g[:, 0] for g in segs] + [np.asarray(h.bounds)[[0, 2]]])
+    ys = np.concatenate([g[:, 1] for g in segs] + [np.asarray(h.bounds)[[1, 3]]])
+    ax.set_xlim(xs.min() - 1000, xs.max() + 400); ax.set_ylim(ys.min() - 400, ys.max() + 1700)
+    b = fig.add_axes([0.54, 0.13, 0.37, 0.76])
+    yy = np.arange(len(stops))[::-1]
+    for y, (i, p) in zip(yy, enumerate(stops, 1)):
+        sh = float(W.loc[p, zone])
+        b.barh(y, 100 * sh, color=ORANGE, height=0.56, zorder=3)
+        b.barh(y, 100 - 100 * sh, left=100 * sh, color="#e4e3df", height=0.56, zorder=3)
+        lab = f"{100 * sh:.0f} %" if sh > 0.1 else f"{100 * sh:.1f} %"
+        inside = sh > 0.9
+        b.text(100 * sh + (-2 if inside else 2), y, lab, va="center", ha="right" if inside else "left", fontsize=15,
+               fontweight="bold", color="white" if inside else INK, zorder=4)
+        b.text(103, y, f"{pop[p]:,} people\nupstream", va="center", fontsize=11, color=MUTED)
+        b.text(-4, y, f"{name(p)}  {i}", ha="right", va="center", fontsize=13, color=INK)
+    b.set_yticks([]); b.set_xlim(0, 100); b.set_xticks([0, 50, 100], ["0", "50", "100 %"])
+    for sp in ("top", "right", "left"):
+        b.spines[sp].set_visible(False)
+    fig.text(0.54, 0.95, "One neighbourhood's share of the sample, on its way to the plant", fontsize=13, color=INK)
+    save(fig, "dilution", raster=True)
 
 
 def fig_network():
@@ -181,11 +255,15 @@ def fig_network():
     x, y = n.xy(PLANT)
     ax.scatter([x], [y], s=220, marker="*", color=ORANGE, edgecolor="white", linewidths=1.2, zorder=11)
     n.frame(ax)
+    xmin, xmax = ax.get_xlim()
+    ax.set_xlim(xmin, xmax + 500)  # a little more room in the north-east corner for the legend
     ax.legend(handles=[Line2D([], [], color=BLUE, lw=2, label="gravity sewer"),
                        Line2D([], [], color=ORANGE, lw=2, label="force main"),
                        Line2D([], [], ls="", marker="s", color=INK, ms=7, label="pumping station"),
                        Line2D([], [], ls="", marker="*", color=ORANGE, ms=14, label="treatment plant")],
-              loc="lower left", bbox_to_anchor=(0.98, 0.0), fontsize=13)
+              loc="upper right", bbox_to_anchor=(1.2, 1.0), fontsize=11, frameon=True, facecolor="white",
+              edgecolor="none", framealpha=0.9, borderpad=0.3, handletextpad=0.4, labelspacing=0.5,
+              borderaxespad=0.2)  # as on the zones map: the north-east corner, partly past the map's edge
     save(fig, "network", raster=True)
 
 
@@ -677,8 +755,8 @@ def fig_design_rank():
     ax.set_xlabel("Site-days"); ax.set_ylabel("Contrasts identified (rank of S)")
     ax.set_yticks(range(0, nc + 1, 2))
     ax.set_ylim(-0.7, nc + 1.5); ax.set_xlim(0, plant.site_days.max() + 2)
-    ax.legend(handles=[Line2D([], [], color=BLUE, marker="o", ms=7, label="Plan for precision: new site"),
-                       Line2D([], [], color=BLUE, marker="o", ms=7, mfc="white", label="Plan for precision: repeat day"),
+    ax.legend(handles=[Line2D([], [], color=BLUE, marker="o", ms=7, label="Precision plan: new site"),
+                       Line2D([], [], color=BLUE, marker="o", ms=7, mfc="white", label="Precision plan: repeat day"),
                        Line2D([], [], ls="", marker="D", ms=9, color=ORANGE, label="Plant and its arriving sewers")],
               loc="center right", bbox_to_anchor=(1.0, 0.62), fontsize=12)
     save(fig, "design_rank")
@@ -781,8 +859,8 @@ def fig_design_pairs():
     ax.scatter(one.site_days, one.pairs_separable * 100, s=110, marker="s", color=AQUA, zorder=5, edgecolor="white")
     ax.set_xlabel("Site-days"); ax.set_ylabel("Zone pairs told apart (%)")
     ax.set_ylim(-3, 105); ax.set_xlim(0, max(hot.site_days.max(), 25) + 1)
-    ax.legend(handles=[Line2D([], [], color=BLUE, marker="o", ms=7, label="Plan for telling pairs apart: new site"),
-                       Line2D([], [], color=BLUE, marker="o", ms=7, mfc="white", label="Plan for telling pairs apart: repeat day"),
+    ax.legend(handles=[Line2D([], [], color=BLUE, marker="o", ms=7, label="Separation plan: new site"),
+                       Line2D([], [], color=BLUE, marker="o", ms=7, mfc="white", label="Separation plan: repeat day"),
                        Line2D([], [], ls="", marker="D", ms=9, color=ORANGE, label="Plant and its arriving sewers only"),
                        Line2D([], [], ls="", marker="s", ms=9, color=AQUA, label=f"All {ns} sites, 1 day each")],
               loc="lower right", fontsize=12)
@@ -818,7 +896,7 @@ def _fixed(ax, faded=False):
     pl = fx[fx.plan.str.startswith(("plant", "inlets"))]
     simple, real = [], []
     ax.plot(g.site_days, 100 * g.correct_mean, color=BLUE, marker="o", ms=5, alpha=a)
-    simple.append(Line2D([], [], color=BLUE, marker="o", ms=6, label="Fixed best plan, as it grows"))
+    simple.append(Line2D([], [], color=BLUE, marker="o", ms=6, label="Separation plan, as it grows"))
     ax.plot(al.site_days, 100 * al.correct_mean, color=AQUA, marker="s", ms=6, alpha=a)
     simple.append(Line2D([], [], color=AQUA, marker="s", ms=7, label="All sites, 1–14 days"))
     ax.scatter(pl.site_days, 100 * pl.correct_mean, s=100, marker="D", color=ORANGE, zorder=5, alpha=a)
@@ -870,9 +948,9 @@ def fig_localisation_adaptive():
     """Slide 17: fixed plans faded, adaptive campaigns on top."""
     fig, ax = _loc_axes()
     simple, real = _fixed(ax, faded=True)
-    for l, t in zip(simple + real, ("Fixed best plan, simplest case", "All sites, 1–14 days, simplest case",
-                                    "Plant or arriving sewers, 7 days", "Fixed, realistic: best guess right",
-                                    "Fixed, realistic: named at 95 %")):
+    for l, t in zip(simple + real, ("Separation plan, simplest case", "All sites, 1–14 days, simplest case",
+                                    "Plant or arriving sewers, 7 days", "Fixed plans, realistic: best guess right",
+                                    "Fixed plans, realistic: named at 95 %")):
         l.set_label(t)
     h = simple + real
     ad = pd.read_csv(G / "localization_adaptive.csv").sort_values("K")
@@ -891,14 +969,15 @@ def fig_localisation_adaptive():
 
 
 def fig_kappa():
-    """Slide 18: hot zone named at 95 % against the hot-spot factor, held campaign and two fixed plans."""
+    """Slide 18 (left half): hot zone named at 95 % against the hot-spot factor, held campaign and two fixed
+    plans."""
     k = pd.read_csv(G / "localization_kappa.csv")
     ns = n_sites()
     greedy = sorted({p for p in k.plan if re.fullmatch(r"greedy hot-spot, \d+ site-days", p)})[0]
     plans = (("adaptive, held, K=2", PURPLE, "*", 13, "Adaptive, held samples, 2 a day"),
              (f"all {ns} sites, 7 days", AQUA, "s", 8, f"All {ns} sites, 7 days each"),
-             (greedy, BLUE, "o", 7, "Fixed best plan, " + greedy.split(", ")[1]))
-    fig, ax = plt.subplots(figsize=(W_FULL, H_FULL))
+             (greedy, BLUE, "o", 7, "Separation plan, " + greedy.split(", ")[1]))
+    fig, ax = plt.subplots(figsize=(5.4, 3.4))
     grid(ax)
     for plan, col, mk, ms, lab in plans:
         for tau, ls in ((CONST["tau_analysis"], "-"), (CONST["tau_cautious"], "--")):
@@ -906,41 +985,41 @@ def fig_kappa():
             ax.plot(x.kappa, 100 * x.correct, color=col, ls=ls, marker=mk if ls == "-" else None, ms=ms,
                     lw=2.4 if ls == "-" else 1.4, label=lab if ls == "-" else None,
                     mfc="white" if mk == "*" else col)
-    ax.plot([], [], color=MUTED, ls="--", lw=1.4, label=f"Neighbourhoods differ more (τ = {CONST['tau_cautious']:g})")
+    ax.plot([], [], color=MUTED, ls="--", lw=1.4, label=f"Zones differ more (τ = {CONST['tau_cautious']:g})")
     ax.set_xscale("log")
     ax.set_xticks([2, 3, 5, 7, 10], ["2×", "3×", "5×", "7×", "10×"])
     ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
-    ax.set_xlabel("Hot-spot strength κ (shedding relative to the other zones)")
+    ax.set_xlabel("Hot-spot strength (fold)")
     ax.set_ylabel("Named correctly at 95 % (%)")
     ax.set_ylim(0, 102)
-    ax.legend(loc="upper left", fontsize=13)
+    ax.legend(loc="upper left", fontsize=11, handlelength=1.8)
     save(fig, "kappa")
 
 
 def fig_mismatch():
-    """Slide 19: share of names that are right against the true background, by hot-spot strength."""
+    """Slide 18 (right half): share of names that are right against the true background, by hot-spot strength."""
     d = pd.read_csv(G / "localization_mismatch.csv")
     kappas = sorted(d.kappa.unique())
     cols = dict(zip(kappas, ["#86b6ef", "#3987e5", "#1c5cab", "#0d366b"]))
-    fig, ax = plt.subplots(figsize=(W_FULL, H_FULL))
+    fig, ax = plt.subplots(figsize=(5.4, 3.4))
     grid(ax)
     for kk in kappas:
         q = d[(d.kappa == kk) & (d.bias == 0)].sort_values("tau")
         ax.plot(q.tau, 100 * q.correct_given_localized, color=cols[kk], marker="o", ms=7, lw=2.4)
-        ax.annotate(f"κ = {kk:g}", (q.tau.iloc[-1], 100 * q.correct_given_localized.iloc[-1]), xytext=(8, 0),
+        ax.annotate(f"{kk:g}-fold", (q.tau.iloc[-1], 100 * q.correct_given_localized.iloc[-1]), xytext=(8, 0),
                     textcoords="offset points", va="center", fontsize=13, color=cols[kk])
     ta = CONST["tau_analysis"]
     ax.axvline(ta, color=MUTED, lw=1, ls=":")
-    ax.text(ta, 4, f" analysis assumes τ = {ta:g}", fontsize=13, color=MUTED, ha="left")
-    ax.set_xlabel("True spread of ordinary differences between zones, τ (ln units)")
+    ax.text(ta, 4, f" analysis\n assumes τ = {ta:g}", fontsize=12, color=MUTED, ha="left")
+    ax.set_xlabel("True spread between zones, τ (ln units)")
     ax.set_ylabel("Names that are right (%)")
     ax.set_ylim(0, 102); ax.set_xticks(sorted(d.tau.unique()))
-    ax.set_xlim(None, d.tau.max() + 0.08)
+    ax.set_xlim(None, d.tau.max() + 0.14)
     save(fig, "mismatch")
 
 
 def fig_example_campaign():
-    """Slide 16: one held campaign, each zone's probability by morning, and the composites analyzed."""
+    """Slide 16: one held campaign, each zone's probability by day, and the composites analyzed."""
     probs = pd.read_csv(G / "example_campaign_probs.csv")
     an = pd.read_csv(G / "example_campaign_analyses.csv")
     share_col = next(c for c in an.columns if c.startswith("share_from_"))
@@ -954,12 +1033,15 @@ def fig_example_campaign():
         if z != zi:
             a1.plot(days, P[:, z], color=GREY, lw=1, alpha=0.6, drawstyle="steps-post")
     a1.plot(days, P[:, zi], color=ORANGE, lw=3, drawstyle="steps-post")
-    a1.annotate(f"zone {hot[1:]} (hot)", (days[-1], P[-1, zi]), xytext=(-4, -18), textcoords="offset points",
-                ha="right", fontsize=13, color=ORANGE, fontweight="bold")
+    # label the hot zone's line where it first leads for good, above the line and clear of the others
+    lead = int(np.argmax([(P[k:, zi] >= P[k:].max(axis=1)).all() for k in range(len(days))]))
+    a1.annotate(f"zone {hot[1:]} (hot)", (days[lead], P[lead, zi]), xytext=(-6, 34), textcoords="offset points",
+                ha="right", fontsize=13, color=ORANGE, fontweight="bold",
+                arrowprops=dict(arrowstyle="-", color=ORANGE, lw=1))
     a1.axhline(0.95, color=INK, lw=1, ls=(0, (5, 3)))
     a1.text(days[0], 0.97, "95 %: name the zone", fontsize=13, color=MUTED)
     a1.axhline(1 / len(zones), color=GREY, lw=0.8, ls=":")
-    a1.set_ylim(0, 1.05); a1.set_xlabel("Morning of campaign")
+    a1.set_ylim(0, 1.05); a1.set_xlabel("Day of campaign")
     a1.set_ylabel("Probability the zone is hot")
     grid(a1)
     first = an.groupby("site").lab_day.min()
@@ -976,7 +1058,7 @@ def fig_example_campaign():
     a2.set_yticks(range(len(used)), ["plant" if s == PLANT else f"{s} (arriving)" if s in ARRIVING else s for s in used],
                   fontsize=11)
     a2.invert_yaxis()
-    a2.set_xlabel("Lab day")
+    a2.set_xlabel("Day the lab starts the composite")
     grid(a2, "x")
     a2.legend(handles=[Line2D([], [], ls="", marker="o", color=ORANGE, ms=8, label=f"receives zone {hot[1:]}"),
                        Line2D([], [], ls="", marker="o", color=BLUE, ms=8, label=f"none from zone {hot[1:]}")],
@@ -1001,7 +1083,7 @@ def fig_posterior_bars():
         ax.bar(range(len(zones)), p, color=[ORANGE if z == hot else BLUE for z in zones], width=0.72, zorder=3)
         ax.axhline(0.95, color=INK, lw=1, ls=(0, (5, 3)))
         ax.set_xticks(range(len(zones)), [z[1:] for z in zones], fontsize=12)
-        ax.set_title(f"Morning {m}", loc="left", color=INK, fontsize=13)
+        ax.set_title(f"Day {m}", loc="left", color=INK, fontsize=13)
         ax.set_ylabel("P(hot)")
     axes[1].set_xlabel("Zone")
     axes[0].set_ylim(0, 1.02)
@@ -1035,21 +1117,63 @@ def fig_posterior_frames():
     print(path.relative_to(ROOT))
 
 
+def fig_campaign_map():
+    """Slide 16: the base map (PNG, axes filling the figure so pixels map linearly to metres) and the zone
+    shapes, label points, and site positions (figures/campaign_map.js) for the animated campaign map; the
+    day-by-day probabilities and composites come from figures/posterior_frames.js."""
+    n = Net()
+    summary = zones_summary()
+    _, hulls = zone_colours(n)
+    x0, y0, x1, y1 = n.bounds
+    pad = 250
+    x0, y0, x1, y1 = x0 - pad, y0 - pad, x1 + pad, y1 + pad
+    w_in = 3.6
+    fig = plt.figure(figsize=(w_in, w_in * (y1 - y0) / (x1 - x0)))
+    ax = fig.add_axes([0, 0, 1, 1])
+    n.basemap(ax, minor=True, scale=0.6)
+    ax.add_collection(n.pipes_lc(["#b3afa7"] * len(n.pipes), wmin=0.15, wmax=2.4))
+    ax.set_xlim(x0, x1); ax.set_ylim(y0, y1)
+    OUT.mkdir(exist_ok=True)
+    fig.savefig(OUT / "campaign_map_base.png", dpi=220)  # no bbox trimming: the extent must be exact
+    plt.close(fig)
+    print("figures/campaign_map_base.png")
+
+    def path(geom):
+        parts = []
+        for poly in getattr(geom, "geoms", [geom]):
+            c = np.asarray(poly.simplify(40).exterior.coords)
+            parts.append("M" + "L".join(f"{x:.0f},{-y:.0f}" for x, y in c) + "Z")
+        return "".join(parts)
+    zones = {}
+    for z, h in hulls.items():
+        pts = n.nodes[n.nodes.zone == z].geometry
+        zones[z[1:]] = {"d": path(h), "lx": round(float(pts.x.median())), "ly": round(float(-pts.y.median()))}
+    sites = {"P": [round(v) for v in n.xy(PLANT)]}
+    for z, c in summary.set_index("zone")["cut_node"].items():
+        if z != "rest":
+            x, y = n.xy(c)
+            sites[z[1:]] = [round(x), round(y)]
+    sites = {k: [v[0], -v[1]] for k, v in sites.items()}
+    data = {"viewBox": [round(x0), round(-y1), round(x1 - x0), round(y1 - y0)], "zones": zones, "sites": sites}
+    (OUT / "campaign_map.js").write_text("// Written by scripts/talk_figures.py (fig_campaign_map); do not edit.\n"
+                                        "// SVG coordinates: metres east, metres north negated.\n"
+                                        f"window.CAMPAIGN_MAP = {json.dumps(data, separators=(',', ':'))};\n")
+    print("figures/campaign_map.js")
+
+
 def fig_plan_grid():
     """Slide 4: a plan as a grid of sites x days; each filled cell is one site-day. Left, the fixed plan
     that separates every pair (greedy_hotspot.csv, days placed one after another); right, the example
-    adaptive campaign's analyses (example_campaign_analyses.csv)."""
+    adaptive campaign's analyses (example_campaign_analyses.csv). Zones aren't introduced until slide 8,
+    so the figure is generic: one row per site, grouped as plant, arriving sewers, and upstream sites,
+    with no site IDs or zone numbers."""
     W, _ = sens()
     summary = zones_summary()
-    pt = pass_through(W, summary)
-    zone_of = {c: z for z, c in summary.set_index("zone")["cut_node"].items() if z != "rest"}
-    # Each site's role, in the order the rows are grouped: (key, marker colour, text colour, legend label).
-    roles = [("plant", ORANGE, "#c2501c", "Plant"),
-             ("stream", "#8a5cc9", PURPLE, "Stream arriving at the plant"),
-             ("pass", BLUE, "#1f62b5", "Outlet of a pass-through zone"),
-             ("own", AQUA, "#12805a", "Outlet of a zone with nothing upstream")]
-    role_of = lambda s: ("plant" if s == PLANT else "stream" if s in STREAMS
-                         else "pass" if pt[zone_of[s]] else "own")
+    # Each site's role, in the order the rows are grouped: (key, marker colour, text colour, group label).
+    roles = [("plant", ORANGE, "#c2501c", "The plant"),
+             ("stream", "#8a5cc9", PURPLE, "Sewers\narriving\nat the plant"),
+             ("up", BLUE, "#1f62b5", "Sites further\nupstream")]
+    role_of = lambda s: "plant" if s == PLANT else "stream" if s in STREAMS else "up"
     cand = [s for s in W.index if np.isfinite(W.loc[s]).all()]
     sites = [s for r in roles for s in cand if role_of(s) == r[0]]
     marker_c = {r[0]: r[1] for r in roles}
@@ -1059,13 +1183,12 @@ def fig_plan_grid():
     fixed = {s: int(n) for s, n in re.findall(r"(\w+)x(\d+)", full.plan)}
     an = pd.read_csv(G / "example_campaign_analyses.csv")
     row = {s: i for i, s in enumerate(sites)}
-    labels = ["plant" if s == PLANT else s for s in sites]
     fig, axes = plt.subplots(1, 2, figsize=(W_FULL, H_FULL + 0.4), sharey=True,
                              gridspec_kw=dict(width_ratios=[1, 1.6]))
     a, b = axes
     for s, n in fixed.items():
         a.scatter(np.arange(1, n + 1), [row[s]] * n, s=70, marker="s", color=marker_c[role_of(s)], zorder=3)
-    a.set_title(f"Fixed plan: tell every pair of zones apart\n{int(full.site_days)} site-days, chosen in advance",
+    a.set_title(f"Separation plan: fixed in advance\n{int(full.site_days)} site-days",
                 loc="left", color=INK, fontsize=13)
     a.set_xlabel("Days at each site (any order)")
     a.set_xlim(0.3, max(fixed.values()) + 0.7)
@@ -1074,9 +1197,9 @@ def fig_plan_grid():
         for j, s in enumerate(ss):
             dx = 0.22 * (ss.count(s) > 1) * (1 if ss.index(s) != j else -1)
             b.scatter(t + dx, row[s], s=55, marker="s", color=marker_c[role_of(s)], zorder=3)
-    b.set_title(f"Adaptive campaign: name the hot zone\n{len(an)} site-days, chosen day by day",
+    b.set_title(f"Adaptive campaign: chosen day by day from the results\n{len(an)} site-days",
                 loc="left", color=INK, fontsize=13)
-    b.set_xlabel("Lab day")
+    b.set_xlabel("Day of campaign")
     # The hot zone's outlet, and the morning its probability first reaches the stopping level.
     hot_zone = next(c.removeprefix("share_from_") for c in an.columns if c.startswith("share_from_"))
     hot_row = row[summary.set_index("zone").at[hot_zone, "cut_node"]]
@@ -1086,11 +1209,11 @@ def fig_plan_grid():
     # label the band in the widest gap between its own composites, so no square covers the text
     days = sorted(set(an.loc[an.site == summary.set_index("zone").at[hot_zone, "cut_node"], "lab_day"]) | {0, named})
     gap = max(zip(days, days[1:]), key=lambda d: d[1] - d[0])
-    b.text(sum(gap) / 2, hot_row, f"hot zone {hot_zone}", ha="center", va="center", fontsize=12, color=INK,
+    b.text(sum(gap) / 2, hot_row, "the rise is here", ha="center", va="center", fontsize=12, color=INK,
            style="italic")
     b.scatter(named, hot_row, s=190, marker="*", color=INK, zorder=4)
-    # one line in the row below the band, ending under the star (that row has nothing late in the campaign)
-    b.text(named + 0.4, hot_row + 1, f"named at {STOP_PROB * 100:.0f}\u2009% (morning {named})", ha="right",
+    # one line in the row above the band, ending over the star (that row has nothing late in the campaign)
+    b.text(named + 0.4, hot_row - 1, f"located (day {named})", ha="right",
            va="center", fontsize=11, color=INK)
     b.set_xlim(None, named + 1.6)
     breaks = [i - 0.5 for i in range(1, len(sites)) if role_of(sites[i]) != role_of(sites[i - 1])]
@@ -1099,15 +1222,16 @@ def fig_plan_grid():
         ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
         for y in breaks:  # a rule between the groups of sites
             ax.axhline(y, color=GRID, lw=1.2, zorder=1)
-    a.set_yticks(range(len(sites)), labels, fontsize=11)
-    for lab, s in zip(a.get_yticklabels(), sites):
-        lab.set_color(text_c[role_of(s)])
+    # one label per group of rows, at its middle, instead of a site ID per row
+    centres = [np.mean([i for i, s in enumerate(sites) if role_of(s) == r[0]]) for r in roles]
+    a.set_yticks(centres, [r[3] for r in roles], fontsize=12)
+    for lab, r in zip(a.get_yticklabels(), roles):
+        lab.set_color(r[2])
         lab.set_fontweight("bold")
-    a.invert_yaxis()
-    handles = [Patch(color=r[1], label=r[3]) for r in roles]
-    fig.legend(handles=handles, loc="lower center", ncol=4, fontsize=12, bbox_to_anchor=(0.5, -0.02),
-               handlelength=1.0, columnspacing=1.4)
-    fig.tight_layout(w_pad=2, rect=(0, 0.07, 1, 1))
+    for ax in axes:
+        ax.tick_params(axis="y", length=0)
+    a.set_ylim(len(sites) - 0.5, -0.5)  # inverted: plant on top
+    fig.tight_layout(w_pad=2)
     save(fig, "plan_grid")
 
 
@@ -1151,19 +1275,22 @@ def fig_equity_onmarg():
 
 
 def fig_equity_minimax():
-    """Slide 21: worst and best zone SD against site-days, D_s and minimax designs."""
+    """Slide 20 (left): worst and best zone SD against site-days, D_s and minimax designs."""
     st = pd.read_csv(E / "minimax_steps.csv")
     zs = pd.read_csv(E / "minimax_zone_sd.csv", index_col="zone")
     _, start = _first_full_rank(zs.columns)
-    fig, ax = plt.subplots(figsize=(W_FULL, H_FULL))
+    fig, ax = plt.subplots(figsize=(6.4, 4.3))
     grid(ax)
-    for plan, col, lab in (("Ds", BLUE, "Best overall precision ($D_s$)"), ("minimax", PURPLE, "Best worst zone (minimax)")):
+    for plan, col, lab in (("Ds", BLUE, "Precision plan"), ("minimax", PURPLE, "Fair plan")):
         q = st[st.plan == plan]
         ax.plot(q.site_days, q.max_sd, color=col, lw=2.6, label=f"{lab}: worst zone")
         ax.plot(q.site_days, q.min_sd, color=col, lw=1.4, ls="--", label=f"{lab}: best zone")
     for fac in PARAMS["design"]["equity_factors"]:
         ax.axhline(np.log(fac), color=MUTED, lw=0.8, ls=":")
         ax.text(st.site_days.max() * 1.05, np.log(fac), f"within ×{fac}", fontsize=12, color=MUTED, va="center")
+    budget = int(yaml.safe_load((ROOT / "_variables.yml").read_text())["EqFactorThreeMm"])
+    ax.axvline(budget, color=PURPLE, lw=1, ls=(0, (2, 2)))  # the budget shown in the maps beside it
+    ax.text(budget * 1.04, 0.16, f"{budget}: maps", fontsize=11, color=PURPLE, va="bottom")
     ax.set_yscale("log"); ax.set_xscale("log")
     for a in (ax.xaxis, ax.yaxis):
         a.set_minor_formatter(matplotlib.ticker.NullFormatter())
@@ -1171,8 +1298,78 @@ def fig_equity_minimax():
     ticks = [start] + [t for t in (30, 100, 300, 1000) if t > start]
     ax.set_xticks(ticks, [f"{t:,}" for t in ticks])
     ax.set_xlabel("Site-days"); ax.set_ylabel("Zone SD (ln units)")
-    ax.legend(loc="upper right", fontsize=12)
+    ax.legend(loc="upper right", fontsize=11)
     save(fig, "equity_minimax")
+
+
+def fig_minimax_map():
+    """Slide 20 (right): where the D_s and minimax designs put their days at the minimax design's
+    factor-of-3 budget (EqFactorThreeMm site-days); markers sized by days, coloured by role as on slide 4."""
+    n = Net()
+    W, _ = sens()
+    summary = zones_summary()
+    pt = pass_through(W, summary)
+    zone_of = {c: z for z, c in summary.set_index("zone")["cut_node"].items() if z != "rest"}
+    role_c = {"plant": ORANGE, "stream": "#8a5cc9", "pass": BLUE, "own": AQUA}
+    role_of = lambda s: ("plant" if s == PLANT else "stream" if s in STREAMS
+                         else "pass" if pt[zone_of[s]] else "own")
+    st = pd.read_csv(E / "minimax_steps.csv")
+    budget = int(yaml.safe_load((ROOT / "_variables.yml").read_text())["EqFactorThreeMm"])
+    fig, axes = plt.subplots(1, 2, figsize=(5.8, 4.5))
+    for ax, (plan, title) in zip(axes, (("Ds", "Precision plan"), ("minimax", "Fair plan"))):
+        r = st[(st.plan == plan) & (st.site_days == budget)].iloc[0]
+        days = {s: int(c) for s, c in re.findall(r"(\w+)x(\d+)", r.plan_sites)}
+        n.basemap(ax, scale=0.5)
+        ax.add_collection(n.pipes_lc(["#a8a49c"] * len(n.pipes), wmin=0.15, wmax=2.4))
+        px, py = n.xy(PLANT)
+        top = sorted(days, key=lambda k: -days[k])[:3]
+        for site, d in sorted(days.items(), key=lambda kv: -kv[1]):
+            x, y = n.xy(site)
+            ax.scatter([x], [y], s=8 * d, color=role_c[role_of(site)], edgecolor="white", linewidths=0.8,
+                       zorder=10, alpha=0.85)
+            if plan == "minimax" and site in top:  # the busiest sites, labelled outward from the plant
+                v = np.array([x - px, y - py]); v = v / (np.hypot(*v) or 1)
+                ax.annotate(f"{d} days", (x, y), xytext=tuple(30 * v + np.array([0, 4])), textcoords="offset points",
+                            ha="left" if v[0] >= 0 else "right", va="center", fontsize=13, color=INK, zorder=11,
+                            arrowprops=dict(arrowstyle="-", color=INK, lw=0.7),
+                            path_effects=[matplotlib.patheffects.withStroke(linewidth=2.5, foreground="white")])
+        n.frame(ax, pad=-600, scalebar=False)  # crop the empty rural edge
+        spread = "same days everywhere" if plan == "Ds" else "days go to the trunk"
+        ax.set_title(f"{title}:\n{spread}\nworst zone SD {r.max_sd:.2f}", fontsize=13, color=INK)
+    h = [Line2D([], [], ls="", marker="o", ms=8, color=c, label=l) for c, l in
+         ((ORANGE, "plant"), ("#8a5cc9", "arriving stream"), (BLUE, "pass-through outlet"), (AQUA, "own outlet"))]
+    fig.legend(handles=h, loc="lower center", ncol=2, fontsize=13, bbox_to_anchor=(0.5, -0.02), columnspacing=1.0,
+               handletextpad=0.3)
+    fig.suptitle(f"Days at each site, {budget} site-days (area = days)", fontsize=13, color=MUTED, y=1.0)
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.78, bottom=0.15, wspace=0.04)
+    save(fig, "minimax_map", raster=True)
+
+
+def fig_confusion():
+    """Appendix 6: which zone the best guess names when each zone is hot, simplest case (normal noise, no
+    background, kappa known), for three fixed plans (localization_confusion_*.csv; rows sum to one)."""
+    from matplotlib.colors import LinearSegmentedColormap
+    cmap = LinearSegmentedColormap.from_list("named", ["#ffffff", "#c9b5e6", "#7651b4", PURPLE])
+    plans = (("inlets_7_days_each", "Plant and arriving sewers,\n7 days each"),
+             ("greedy_hot-spot_38_site-days", "Separation plan,\n38 site-days"),
+             (f"all_{n_sites()}_sites_7_days", f"All {n_sites()} sites,\n7 days each"))
+    fig, axes = plt.subplots(1, 3, figsize=(W_FULL, 4.3))
+    for ax, (f, title) in zip(axes, plans):
+        c = pd.read_csv(G / f"localization_confusion_{f}.csv", index_col=0)
+        im = ax.imshow(c.to_numpy(), cmap=cmap, vmin=0, vmax=1)
+        labs = [z[1:] for z in c.index]
+        ax.set_xticks(range(len(labs)), labs, fontsize=9, rotation=90)
+        ax.set_yticks(range(len(labs)), labs, fontsize=9)
+        ax.tick_params(length=0)
+        for sp in ax.spines.values():
+            sp.set_visible(False)
+        right = 100 * np.diag(c.to_numpy()).mean()
+        ax.set_title(f"{title}: best guess right {right:.0f} %", fontsize=12, color=INK)
+        ax.set_xlabel("Zone named (best guess)", fontsize=12)
+    axes[0].set_ylabel("Zone that is hot", fontsize=12)
+    cb = fig.colorbar(im, ax=axes, fraction=0.015, pad=0.015)
+    cb.set_label("Share of runs", fontsize=12); cb.ax.tick_params(labelsize=10)
+    save(fig, "confusion")
 
 
 # ------------------------------------------------------------------------------------- appendix
@@ -1182,10 +1379,10 @@ def fig_sigma_sweep():
     up = sw[sw.noise.str.startswith("upstream")]
     fig, ax = plt.subplots(figsize=(W_FULL, H_FULL))
     grid(ax)
-    ax.plot(up.sigma_upstream, up.greedy_all_pairs_site_days, color=BLUE, marker="o", ms=7, label="Fixed plan, all pairs ≥ 2σ")
-    ax.plot(up.sigma_upstream, up.adaptive_K2_site_days_median, color=INK, marker="*", ms=12, label="Adaptive, same-day, K = 2")
+    ax.plot(up.sigma_upstream, up.greedy_all_pairs_site_days, color=BLUE, marker="o", ms=7, label="Separation plan, all pairs ≥ 2σ")
+    ax.plot(up.sigma_upstream, up.adaptive_K2_site_days_median, color=INK, marker="*", ms=12, label="Adaptive, 2 upstream a day, results the same day")
     ax.axvline(float(PARAMS["noise"]["sigma_ln_upstream"]), color=MUTED, lw=1, ls=":")
-    ax.set_xlabel("Upstream σ (plant at the measured ratio)"); ax.set_ylabel("Site-days")
+    ax.set_xlabel("Upstream σ (the plant's σ scaled with it, in the measured ratio)"); ax.set_ylabel("Site-days")
     ax.set_ylim(0, None)
     ax.legend(loc="upper left")
     save(fig, "sigma_sweep")
@@ -1210,10 +1407,271 @@ def fig_campaign_length():
     save(fig, "campaign_length")
 
 
-FIGURES = [fig_catchment, fig_plan_grid, fig_network, fig_blocks, fig_blocks_legend, fig_flow_inset, fig_hydraulics, fig_zones, fig_zone_tree, fig_representation, fig_noise, fig_noise_tails,
+def fig_multi_zone():
+    """Appendix 10: the analysis that also allows two hot zones, as bars of the shares in _variables.yml
+    (Multi*), grouped by the simulated truth: one hot zone, two, or none."""
+    V = yaml.safe_load((ROOT / "_variables.yml").read_text())
+    rows = [("One hot zone", BLUE, "First zone named is the hot one", "MultiOneFirstCorrect"),
+            ("One hot zone", BLUE, "First names that are right", "MultiOneFirstGivenNamed"),
+            ("One hot zone", BLUE, "Confirmed as the only hot zone", "MultiOneConfirmed"),
+            ("Two hot zones", PURPLE, "A first zone named", "MultiTwoFirstNamed"),
+            ("Two hot zones", PURPLE, "First names that are a hot zone", "MultiTwoFirstGivenNamed"),
+            ("Two hot zones", PURPLE, "The exact pair named", "MultiTwoPair"),
+            ("No hot spot", MUTED, "A zone or pair named", "MultiNullFalse")]
+    fig, ax = plt.subplots(figsize=(W_FULL, 4.0))
+    y, ys, groups = 0, [], {}
+    for i, (g, c, lab, key) in enumerate(rows):
+        if i and g != rows[i - 1][0]:
+            y += 0.6  # a gap between the groups
+        v = float(V[key])
+        ax.barh(y, v, color=c, height=0.72)
+        ax.text(v + 1, y, f"{v:g}\u2009%", va="center", fontsize=12, color=INK)
+        groups.setdefault(g, []).append(y)
+        ys.append((y, lab)); y += 1
+    # the one-zone analysis of the talk, for the first bar
+    one = float(V["HeldKTwoCorrect"])
+    ax.plot([one, one], [-0.42, 0.42], color=INK, lw=2)
+    ax.annotate(f"one-zone analysis: {one:g}\u2009%", (one, -0.42), xytext=(one + 4, -0.9), fontsize=11,
+                color=INK, va="center", arrowprops=dict(arrowstyle="-", color=INK, lw=0.7))
+    ax.set_yticks([a for a, _ in ys], [b for _, b in ys], fontsize=12)
+    ax.invert_yaxis()
+    for g, yy in groups.items():  # group label to the right of its bars
+        ax.text(112, np.mean(yy), g, va="center", ha="left", fontsize=13, color=INK, weight="bold")
+    ax.set_xlim(0, 135); ax.set_xticks([0, 25, 50, 75, 100])
+    ax.set_xlabel("Share of campaigns (%)")
+    grid(ax, "x")
+    for sp in ("top", "right"):
+        ax.spines[sp].set_visible(False)
+    fig.tight_layout()
+    save(fig, "multi_zone")
+
+
+def _graph(n: Net):
+    import networkx as nx
+    G = nx.MultiDiGraph()
+    G.add_edges_from(zip(n.pipes.from_node, n.pipes.to_node, n.pipes.pipe_id))
+    return G
+
+
+# Register examples (data/london_data_issues.csv): (id, pipes, kind, title). "cut": the nodes that reach the
+# plant only through these pipes; "upstream": everything that drains through the pipe.
+DATA_FIXES = (("D08", ("328065", "328066"), "cut", "Two Ridout St pipes listed\nas proposed are in service"),
+              ("D28", ("900001",), "cut", "Berkshire Village force main\nends 25 m short of the plant"),
+              ("D05", ("142170",), "upstream", "An invert of 25,089 m\n(for 250.89 m) blocks a trunk"))
+
+
+def fig_data_fixes():
+    """Appendix 2: three entries of the register of data issues on the model network. For the two missing
+    links, the part of the final network that reaches the plant only through them; for the invert typo,
+    the part that drains through the pipe, which the typo backed up."""
+    import networkx as nx
+    n = Net()
+    G = _graph(n)
+    reach = nx.ancestors(G, PLANT) | {PLANT}
+    issues = pd.read_csv(PAPER / "data" / "london_data_issues.csv").set_index("id")
+    fig, axes = plt.subplots(1, 3, figsize=(W_FULL, 5.0))
+    for ax, (iid, ids, kind, title) in zip(axes, DATA_FIXES):
+        assert iid in issues.index, iid
+        if kind == "cut":
+            H = G.copy()
+            H.remove_edges_from([(u, v, k) for u, v, k in G.edges(keys=True) if k in ids])
+            hit = reach - (nx.ancestors(H, PLANT) | {PLANT})
+            what = "would not reach the plant"
+        else:
+            u = n.pipes.set_index("pipe_id").at[ids[0], "from_node"]
+            hit = nx.ancestors(G, u) | {u}
+            what = "drain through this pipe"
+        n.basemap(ax, scale=0.5)
+        on = n.pipes.from_node.isin(hit).to_numpy()
+        ax.add_collection(n.pipes_lc(np.where(on, ORANGE, "#cfcdc8"), wmin=0.25, wmax=3.0))
+        fx = n.pipes[n.pipes.pipe_id.isin(ids)]
+        c = fx.geometry.union_all().centroid
+        ax.scatter([c.x], [c.y], s=420, facecolor="none", edgecolor=PURPLE, linewidths=2.4, zorder=12)
+        x, y = n.xy(PLANT)
+        ax.scatter([x], [y], s=200, marker="*", color=INK, edgecolor="white", linewidths=1.0, zorder=11)
+        n.frame(ax, scalebar=ax is axes[-1])
+        people = n.nodes.loc[[h for h in hit if h in n.nodes.index], "population"].sum()
+        ax.set_title(f"{iid}: {title}", loc="left", fontsize=13, color=INK)
+        ax.text(0.02, -0.02, f"{len(hit):,} nodes, about {round(people, -2):,.0f} people,\n{what}",
+                transform=ax.transAxes, fontsize=12,
+                color="#c2501c", va="top")
+    fig.legend(handles=[Line2D([], [], color=ORANGE, lw=3, label="affected part of the network"),
+                        Line2D([], [], ls="", marker="o", mfc="none", mec=PURPLE, mew=2, ms=13, label="the pipe in the register"),
+                        Line2D([], [], ls="", marker="*", color=INK, ms=13, label="treatment plant")],
+               loc="lower center", ncol=3, fontsize=12, bbox_to_anchor=(0.5, -0.02))
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.88, bottom=0.2, wspace=0.05)
+    save(fig, "data_fixes", raster=True)
+
+
+def fig_data_register():
+    """Appendix 2: the register of data issues by kind and status."""
+    d = pd.read_csv(PAPER / "data" / "london_data_issues.csv")
+    tab = d.groupby(["area", "status"]).size().unstack(fill_value=0)
+    status = [("resolved", AQUA, "resolved"), ("provisional", YELLOW, "provisional (an assumption)"),
+              ("open", ORANGE, "open")]
+    tab = tab.reindex(columns=[s for s, *_ in status], fill_value=0)
+    tab = tab.loc[tab.sum(axis=1).sort_values().index]
+    fig, ax = plt.subplots(figsize=(W_COL, 4.2))
+    grid(ax, "x")
+    left = np.zeros(len(tab))
+    for s, col, lab in status:
+        ax.barh(range(len(tab)), tab[s], left=left, color=col, label=f"{lab} ({tab[s].sum()})", height=0.7, zorder=3)
+        left += tab[s].to_numpy()
+    ax.set_yticks(range(len(tab)), tab.index)
+    ax.set_xlabel("Issues in the register")
+    ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
+    ax.legend(loc="lower right", fontsize=12)
+    save(fig, "data_register")
+
+
+def fig_limits():
+    """Appendix 11: hot zone named at 95 % against the plant N1 concentration under uniform shedding, with
+    composites censored at the laboratory's limits (the paper's fig_si_limits)."""
+    d = pd.read_csv(G / "detection.csv")
+    d["plant_conc"] = d.plant_conc.astype(float)
+    q = pd.read_csv(G / "detection_loq_only.csv")
+    q["plant_conc"] = q.plant_conc.astype(float)
+    lv = pd.read_csv(PAPER / "scenarios" / "odm" / "n1_levels.csv").set_index("site")
+    det = PARAMS["detection"]
+    greedy = next(p for p in d.plan.unique() if re.fullmatch(r"greedy hot-spot, \d+ site-days", p))
+    plans = (("adaptive, held, K=2", INK, "*", 13, "Adaptive, held, 2 a day"),
+             (f"all {n_sites()} sites, 7 days", AQUA, "s", 7, f"All {n_sites()} sites, 7 days"),
+             (greedy, BLUE, "o", 7, "Separation plan, " + greedy.split(", ")[1]))
+    fig, ax = plt.subplots(figsize=(W_FULL - 1.5, H_COL))
+    grid(ax)
+    xmax, xnl = 16000, 32000
+    ax.axvspan(lv.loc["GRWY", "q05"], xmax * 1.25, color=GREY, alpha=0.13, lw=0)
+    ax.text(lv.loc["GRWY", "q05"] * 1.08, 96, "Greenway plant: 95 % of\ndates above this", fontsize=12, color=MUTED,
+            va="top")
+    ax.axvline(xmax * 1.25, color=MUTED, lw=0.6)
+    for v, t in ((det["slod_gc_L"], "sLOD"), (det["sloq_gc_L"], "sLOQ")):
+        ax.axvline(v, color=MUTED, lw=0.9, ls=":")
+        ax.text(v, 103, t, fontsize=12, color=MUTED, ha="center", va="bottom")
+    for plan, col, mk, ms, lab in plans:
+        x = d[d.plan == plan].set_index("plant_conc").sort_index()
+        fin = x[np.isfinite(x.index)]
+        ax.plot(fin.index, 100 * fin.confident, color=col, marker=mk, ms=ms, lw=2.2, label=lab)
+        ax.plot([xnl], [100 * x.loc[np.inf, "confident"]], color=col, marker=mk, ms=ms, mfc="white", ls="none")
+        y = q[q.plan == plan].sort_values("plant_conc")
+        ax.plot(y.plant_conc, 100 * y.confident, color=col, lw=1.2, ls="--")
+    ax.plot([], [], color=MUTED, lw=1.2, ls="--", label="censored at the sLOQ only")
+    ax.set_xscale("log")
+    ax.set_xlim(240, xnl * 1.3)
+    ax.set_xticks([300, 1000, 3000, 10000, xnl], ["300", "1,000", "3,000", "10,000", "no\nlimits"])
+    ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+    ax.set_xlabel("Plant N1 concentration under uniform shedding (gc/L)")
+    ax.set_ylabel("Hot zone named at 95 % (%)")
+    ax.set_ylim(0, 102)
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.28), ncol=2, fontsize=12)
+    save(fig, "limits")
+
+
+def _zone_hulls(pipes, zone_col, buffer=310):
+    from shapely.ops import unary_union
+    return {z: unary_union(list(g.geometry)).buffer(buffer).buffer(-250)
+            for z, g in pipes.groupby(zone_col) if z != "rest"}
+
+
+def fig_zones_onmarg():
+    """Appendix 12: the alternative zoning cut by ON-Marg material resources, each zone shaded and labelled
+    by its mean score, with its candidate sites (the paper's fig_zones_onmarg)."""
+    from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
+    Z = E / "zoning_onm_material"
+    zmap = pd.read_csv(Z / "zones_proposed.csv", index_col="node")["zone"]
+    summary = pd.read_csv(Z / "zones_summary.csv").set_index("zone")
+    score = summary["onm_material"].drop("rest", errors="ignore")
+    sites = [str(s) for s in np.load(Z / "greenway" / "sensitivities.npz")["sites"]]
+    n = Net()
+    n.pipes["zone_onm"] = n.pipes.from_node.map(zmap).fillna("rest")
+    hulls = _zone_hulls(n.pipes, "zone_onm")
+    cmap = LinearSegmentedColormap.from_list("onm", [AQUA, "#f3f2ee", PURPLE])
+    lim = float(np.abs(score).max())
+    norm = TwoSlopeNorm(0, -lim, lim)
+    colour = {z: cmap(norm(s)) for z, s in score.items()} | {"rest": GREY}
+    fig, ax = plt.subplots(figsize=(4.6, 6.4))
+    n.basemap(ax)
+    for z, h in hulls.items():
+        for part in getattr(h, "geoms", [h]):
+            x, y = part.exterior.xy
+            ax.fill(x, y, color=colour[z], alpha=0.35, lw=0, zorder=3)
+            ax.plot(x, y, color=MUTED, lw=0.7, alpha=0.8, zorder=4)
+    ax.add_collection(n.pipes_lc([colour[z] if z != "rest" else GREY for z in n.pipes.zone_onm], wmin=0.25, wmax=3.0))
+    for s in sites:
+        if s in n.nodes.index:
+            x, y = n.xy(s)
+            ax.scatter([x], [y], s=45, facecolor=INK, edgecolor="white", linewidths=1.0, zorder=10)
+    nz = n.nodes.assign(zone_onm=n.nodes.index.map(zmap))
+    for z, s in score.items():
+        pts = nz[nz.zone_onm == z].geometry
+        ax.text(pts.x.median(), pts.y.median(), f"{s:+.2f}", fontsize=11, fontweight="bold", color=INK,
+                ha="center", va="center", zorder=9,
+                bbox=dict(boxstyle="round,pad=0.15", facecolor="white", edgecolor="none", alpha=0.85))
+    x, y = n.xy(PLANT)
+    ax.scatter([x], [y], s=240, marker="*", color=INK, edgecolor="white", linewidths=1.2, zorder=11)
+    n.frame(ax)
+    sm = matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
+    cax = ax.inset_axes([0.62, 0.93, 0.36, 0.025])
+    cb = fig.colorbar(sm, cax=cax, orientation="horizontal")
+    cb.set_ticks([-0.5, 0, 0.5]); cb.ax.tick_params(labelsize=10)
+    cb.set_label("material resources score\n(higher = more marginalized)", fontsize=10)
+    cb.ax.xaxis.set_label_position("top")
+    ax.legend(handles=[Line2D([], [], ls="", marker="o", color=INK, ms=7, label="candidate site"),
+                       Line2D([], [], ls="", marker="*", color=INK, ms=12, label="treatment plant")],
+              loc="lower left", fontsize=11, frameon=True, facecolor="white", edgecolor="none", framealpha=0.9)
+    save(fig, "zones_onmarg", raster=True)
+
+
+POOL_FIG_SITE_DAYS = 100  # the paper's PoolFigSiteDays
+
+
+def fig_candidates():
+    """Appendix 12: the wider pool of candidate sites on the main zoning, by kind; filled where the best
+    fractional minimax plan of 100 site-days spends at least half a day (the paper's fig_candidates)."""
+    k = pd.read_csv(E / "pool_min5000_flow" / "sites.csv")
+    c = k[k["kept"].astype(bool)].set_index("node")["kind"]
+    rel = pd.read_csv(E / "alternatives_relaxed.csv")
+    plan = rel[(rel.case == "pool") & (rel.site_days == POOL_FIG_SITE_DAYS)].iloc[0].plan
+    used = {s for s, v in re.findall(r"(\w+) ([\d.]+)", plan) if float(v) >= 0.5}
+    n = Net()
+    colour, hulls = zone_colours(n)
+    fig, ax = plt.subplots(figsize=(4.6, 6.4))
+    n.basemap(ax)
+    for z, h in hulls.items():
+        for part in getattr(h, "geoms", [h]):
+            x, y = part.exterior.xy
+            ax.fill(x, y, color=colour[z], alpha=0.06, lw=0, zorder=3)
+            ax.plot(x, y, color=colour[z], lw=0.7, alpha=0.6, zorder=4)
+    ax.add_collection(n.pipes_lc([matplotlib.colors.to_rgba(colour[z], 0.45) for z in n.pipes.zone], wmin=0.25, wmax=3.0))
+    marks = {"current": ("o", 50, "current site (zone outlet)"), "pump station": ("s", 50, "pumping station"),
+             "flow monitor": ("D", 38, "flow-monitoring\nmaintenance hole"),
+             "off-road maintenance hole": ("^", 38, "off-road maintenance hole"),
+             "trunk maintenance hole": ("P", 60, "trunk maintenance hole")}
+    handles = []
+    for kind, (m, size, lab) in marks.items():
+        nodes = [s for s in c.index[c == kind] if s in n.nodes.index]
+        for filled in (False, True):
+            sel = [s for s in nodes if (s in used) == filled]
+            if sel:
+                g = n.nodes.geometry[sel]
+                ax.scatter(g.x, g.y, s=size, marker=m, facecolor=PURPLE if filled else "white",
+                           edgecolor=PURPLE if filled else INK, linewidths=0.9, zorder=10 + filled)
+        if nodes:
+            handles.append(Line2D([], [], ls="", marker=m, mfc="white", mec=INK, ms=7, label=lab))
+    handles.append(Line2D([], [], ls="", marker="o", color=PURPLE, ms=7,
+                          label=f"used by the best fair\nplan, {POOL_FIG_SITE_DAYS} site-days"))
+    x, y = n.xy(PLANT)
+    ax.scatter([x], [y], s=240, marker="*", color=INK, edgecolor="white", linewidths=1.2, zorder=12)
+    n.frame(ax)
+    ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, 0.0), ncol=2, fontsize=10,
+              handletextpad=0.3, labelspacing=0.4, columnspacing=1.0)
+    save(fig, "candidates", raster=True)
+
+
+FIGURES = [fig_catchment, fig_dilution, fig_plan_grid, fig_network, fig_blocks, fig_blocks_legend, fig_flow_inset, fig_hydraulics, fig_zones, fig_zone_tree, fig_representation, fig_noise, fig_noise_tails,
            fig_identical_shift, fig_level_contrasts, fig_design_rank, fig_greedy_steps, fig_greedy_frames, fig_design_pairs, fig_posterior_bars, fig_localisation_fixed,
-           fig_example_campaign, fig_posterior_frames, fig_localisation_adaptive, fig_kappa, fig_mismatch, fig_equity_onmarg,
-           fig_equity_minimax, fig_sigma_sweep, fig_campaign_length]
+           fig_example_campaign, fig_campaign_map, fig_posterior_frames, fig_localisation_adaptive, fig_kappa, fig_mismatch, fig_equity_onmarg, fig_minimax_map, fig_confusion,
+           fig_equity_minimax, fig_sigma_sweep, fig_campaign_length, fig_multi_zone, fig_data_fixes, fig_data_register, fig_limits,
+           fig_zones_onmarg, fig_candidates]
 
 if __name__ == "__main__":
     want = set(sys.argv[1:])
