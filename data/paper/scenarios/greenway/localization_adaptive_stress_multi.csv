@@ -1,0 +1,12 @@
+case,K,analysis,site_days_median,site_days_mean,site_days_p90,days_median,localized,null_declared,inconclusive,correct,correct_given_localized,correct_min_zone,one_of_two_alone,wrong_zone_named,first_named,first_correct,first_correct_given_named,first_site_days_median,first_days_median,false_localization
+"ideal (Gaussian, no background)",2,"robust, two hot zones",120.000,119.192,120.000,40.000,0.024,0.000,0.976,0.022,0.912,0.000,0.000,0.002,0.751,0.746,0.992,39.000,13.000,
+realistic + level moving daily 0.3,2,"robust, two hot zones",120.000,117.801,120.000,40.000,0.053,0.000,0.947,0.038,0.716,0.000,0.000,0.015,0.642,0.605,0.942,42.000,14.000,
+background 0.5,2,"robust, two hot zones",120.000,115.251,120.000,40.000,0.097,0.000,0.903,0.038,0.390,0.000,0.000,0.059,0.609,0.525,0.862,39.000,13.000,
+hot-spot factor 2,2,"robust, two hot zones",120.000,119.704,120.000,40.000,0.005,0.000,0.995,0.001,0.143,0.000,0.000,0.004,0.124,0.094,0.753,57.000,19.000,
+hot-spot factor 3,2,"robust, two hot zones",120.000,119.696,120.000,40.000,0.008,0.000,0.992,0.003,0.364,0.000,0.000,0.005,0.319,0.283,0.886,51.000,17.000,
+hot-spot factor 10,2,"robust, two hot zones",120.000,109.206,120.000,40.000,0.276,0.000,0.724,0.263,0.953,0.030,0.000,0.013,0.941,0.919,0.977,30.000,10.000,
+no hot spot,2,"robust, two hot zones",120.000,119.899,120.000,40.000,0.001,0.000,0.999,,,,,,,,,,,0.001
+two hot zones,2,"robust, two hot zones",120.000,102.186,120.000,40.000,0.329,0.000,0.671,0.316,0.961,0.000,0.002,0.011,0.775,0.759,0.980,36.000,12.000,
+"two hot zones, factor 2",2,"robust, two hot zones",120.000,119.608,120.000,40.000,0.009,0.000,0.991,0.006,0.692,0.000,0.000,0.003,0.175,0.151,0.865,45.000,15.000,
+"two hot zones, factor 3",2,"robust, two hot zones",120.000,116.642,120.000,40.000,0.074,0.000,0.926,0.066,0.894,0.000,0.001,0.006,0.424,0.404,0.953,48.000,16.000,
+"two hot zones, factor 10",2,"robust, two hot zones",60.000,68.713,120.000,20.000,0.754,0.000,0.246,0.739,0.981,0.000,0.005,0.009,0.979,0.971,0.992,24.000,8.000,

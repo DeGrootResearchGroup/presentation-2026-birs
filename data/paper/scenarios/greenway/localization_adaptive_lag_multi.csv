@@ -1,0 +1,13 @@
+case,K,mode,analysis,site_days_median,site_days_mean,site_days_p90,days_median,localized,null_declared,inconclusive,correct,correct_given_localized,correct_min_zone,one_of_two_alone,wrong_zone_named,first_named,first_correct,first_correct_given_named,first_site_days_median,first_days_median,false_localization
+realistic,1,lag,"robust, two hot zones",80.000,79.677,80.000,42.000,0.010,0.000,0.990,0.002,0.214,0.000,0.000,0.008,0.479,0.460,0.960,40.000,21.000,
+realistic,2,lag,"robust, two hot zones",120.000,118.412,120.000,42.000,0.046,0.000,0.954,0.031,0.677,0.000,0.000,0.015,0.640,0.622,0.972,45.000,16.000,
+realistic,4,lag,"robust, two hot zones",200.000,193.618,200.000,42.000,0.100,0.000,0.900,0.086,0.857,0.010,0.000,0.014,0.816,0.789,0.968,60.000,13.000,
+no hot spot,2,lag,"robust, two hot zones",120.000,119.904,120.000,42.000,0.002,0.000,0.998,,,,,,,,,,,0.002
+realistic + level moving daily 0.3,2,lag,"robust, two hot zones",120.000,118.187,120.000,42.000,0.050,0.000,0.950,0.029,0.586,0.000,0.000,0.021,0.663,0.629,0.948,45.000,16.000,
+two hot zones,2,lag,"robust, two hot zones",120.000,104.466,120.000,42.000,0.330,0.000,0.670,0.318,0.963,0.000,0.005,0.007,0.776,0.765,0.985,42.000,15.000,
+realistic,1,held,"robust, two hot zones",80.000,79.783,80.000,42.000,0.009,0.000,0.991,0.003,0.308,0.000,0.000,0.006,0.466,0.441,0.948,40.000,21.000,
+realistic,2,held,"robust, two hot zones",120.000,118.461,120.000,42.000,0.046,0.000,0.954,0.042,0.908,0.000,0.000,0.004,0.648,0.626,0.966,45.000,16.000,
+realistic,4,held,"robust, two hot zones",200.000,193.018,200.000,42.000,0.105,0.000,0.895,0.091,0.871,0.030,0.000,0.014,0.807,0.789,0.977,55.000,12.000,
+no hot spot,2,held,"robust, two hot zones",120.000,119.876,120.000,42.000,0.001,0.000,0.999,,,,,,,,,,,0.001
+realistic + level moving daily 0.3,2,held,"robust, two hot zones",120.000,118.719,120.000,42.000,0.036,0.000,0.964,0.028,0.765,0.000,0.000,0.009,0.640,0.616,0.963,45.000,16.000,
+two hot zones,2,held,"robust, two hot zones",120.000,103.341,120.000,42.000,0.339,0.000,0.661,0.318,0.937,0.000,0.006,0.015,0.789,0.776,0.984,39.000,14.000,

@@ -1,0 +1,6 @@
+paper repository: JRN-059
+commit: 6196860c9c05cd92b27c7679666698004bd3bad7
+describe: 6196860-dirty
+clean: no (draft copy, uncommitted changes)
+copied: 2026-11-15T22:55:55
+files: 75

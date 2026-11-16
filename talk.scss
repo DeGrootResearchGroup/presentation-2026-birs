@@ -1,0 +1,215 @@
+/*-- scss:defaults --*/
+
+// Talk-specific colours, e.g. one per method being compared.
+// $this-work: #6b3fa0;
+
+/*-- scss:rules --*/
+
+// Layouts that only this talk needs. theme.scss is the group template and is
+// left untouched, so it can be replaced with a newer version without losing
+// anything here.
+
+$ink2: #52514e;
+$model: #2a78d6;
+$stat: #1baf7a;
+
+// Short supporting sentence under a figure (assertion-evidence allows one).
+.reveal .takeaway {
+  display: block;
+  line-height: 1.3;
+  font-size: 0.7em;
+  color: #1a1a1a;
+  margin-top: 0.4em;
+}
+
+// Figures never run under the footer.
+.reveal .slides section img {
+  max-height: 470px;
+}
+
+.reveal .rm-data { border-color: #b9b8b3 !important; background: #f4f4f2; }
+.reveal .rm-model { border-color: $model !important; background: #eaf2fc; }
+.reveal .rm-stat { border-color: $stat !important; background: #e8f7f1; }
+// Key counts beside a map.
+.reveal .stat-stack {
+  margin-top: 1.0em;
+}
+.reveal .stat-stack .stat {
+  font-size: 0.75em;
+  margin: 0.25em 0;
+}
+.reveal .stat-stack .stat b {
+  color: #4B2682;
+  font-size: 1.35em;
+  margin-right: 0.2em;
+}
+
+// Literature tables.
+.reveal table.lit-table {
+  font-size: 0.55em;
+  margin-top: 0.6em;
+}
+.reveal table.lit-table th { font-size: 0.9em; }
+.reveal table.lit-table td, .reveal table.lit-table th { padding: 0.25em 0.5em; }
+.reveal table.lit-full { font-size: 0.5em; }
+.reveal table.lit-full td, .reveal table.lit-full th { padding: 0.12em 0.5em; }
+
+// Equations sit a little smaller than body text beside figures.
+.reveal .column .katex-display { font-size: 0.85em; margin: 0.6em 0; }
+
+// With auto-stretch off, plots fill their column's width but never run under the footer.
+.reveal img.fig-fill {
+  max-height: 380px;
+  object-fit: contain;
+}
+
+// Slide 3: upstream programs (left) and the five needs (right).
+.reveal .programs .prog {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+  margin: 0.4em 0;
+  font-size: 0.68em;
+  line-height: 1.25;
+}
+.reveal .programs .prog > b {
+  flex: 0 0 4.1em;
+  text-align: right;
+  white-space: nowrap;
+  color: #4B2682;
+  font-size: 1.5em;
+}
+.reveal .programs .prog span { display: block; color: $ink2; }
+.reveal .needs .need {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  margin: 0.45em 0;
+  font-size: 0.68em;
+  line-height: 1.25;
+}
+.reveal .needs .need i {
+  flex: 0 0 1.6em;
+  height: 1.6em;
+  border-radius: 50%;
+  background: #4B2682;
+  color: white;
+  font-style: normal;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.6em;
+}
+
+// Slide 3: a strip of 17 dots under each need, one per prior study.
+.reveal .needs .need { align-items: flex-start; margin: 0.25em 0; }
+.reveal .needs .need i { margin-top: 0.1em; }
+.reveal .needs .dots { display: inline-flex; gap: 3px; vertical-align: middle; margin-top: 0.2em; }
+.reveal .needs .dots > * {
+  width: 0.62em; height: 0.62em; border-radius: 50%;
+  border: 1.5px solid #4B2682; box-sizing: border-box; display: inline-block;
+}
+.reveal .needs .dots b { background: #4B2682; }
+.reveal .needs .dots u { background: linear-gradient(90deg, #4B2682 50%, transparent 50%); }
+.reveal .needs .dots s { border-color: #c9c8c3; }
+.reveal .needs em { font-style: normal; font-size: 0.75em; color: $ink2; margin-left: 0.5em; vertical-align: middle; }
+
+// Roadmap (slide 5) as a grid: the chain, a thumbnail of each step's figure, and the data inputs
+// under the step they feed. Six steps with arrow columns between them.
+.reveal .rmg { display: grid; grid-template-columns: repeat(5, 1fr 14px) 1fr; column-gap: 4px; row-gap: 8px;
+  margin-top: 0.8em; font-size: 0.5em; align-items: stretch; }
+.reveal .rmg .rm-box { border-radius: 10px; padding: 0.45em 0.3em; text-align: center; font-weight: 700;
+  border: 2px solid; line-height: 1.2; }
+.reveal .rmg .rm-box span { display: block; font-weight: 400; font-size: 0.82em; color: $ink2; margin-top: 0.25em; }
+.reveal .rmg .arr { align-self: center; text-align: center; color: $ink2; font-size: 1.1em; }
+.reveal .rmg .thumb { border: 1px solid #e4e3df; border-radius: 6px; background: white; height: 180px;
+  display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.reveal .rmg .thumb img { max-width: 100%; max-height: 174px; object-fit: contain; margin: 0; }
+.reveal .rmg .up { text-align: center; color: #8a8984; font-size: 1.3em; line-height: 1; }
+.reveal .rm-eq { border-color: #4B2682 !important; background: #f1ecf7; }
+
+// Slide 7: the loading equation under the flow inset.
+.reveal .slide7-eq { display: block; font-size: 0.75em; margin-top: 0.1em; padding-left: 0.6em; }
+
+// Slide 11: the labelled equation, a little smaller so its labels fit the column.
+.reveal .eq-small .katex-display { font-size: 0.78em; margin: 0.2em 0 0.4em; }
+
+// The greedy plan's three steps, in a row under the pair grids.
+.reveal .greedy-steps { display: flex; align-items: center; gap: 0.4em; font-size: 0.6em; margin-top: 0.4em; }
+.reveal .greedy-steps > div:not(.arr) { flex: 1; display: flex; align-items: center; gap: 0.5em; line-height: 1.25; }
+.reveal .greedy-steps i { flex: 0 0 1.6em; height: 1.6em; border-radius: 50%; background: #4B2682; color: white;
+  font-style: normal; font-weight: 700; text-align: center; line-height: 1.6em; }
+.reveal .greedy-steps .arr { color: #52514e; }
+
+// Slide 15: the animated zone probabilities and the composites analyzed (data in figures/posterior_frames.js).
+.reveal .pbars { position: relative; font-family: "Source Sans Pro", "Helvetica Neue", Arial, sans-serif;
+  color: #52514e; padding: 0 0 0 3.4em; margin-top: 0.4em; }
+.reveal .pbars .pb-head { display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 0.66em; margin-bottom: 0.5em; }
+.reveal .pbars .pb-morning { color: #1f1e1c; font-weight: 600; }
+.reveal .pbars .pb-replay { font: inherit; font-size: 0.85em; color: #4B2682; background: none;
+  border: 1px solid #c9b5e6; border-radius: 4px; padding: 0.05em 0.5em; cursor: pointer; }
+.reveal .pbars .pb-plot { position: relative; height: 250px; }
+.reveal .pbars .pb-y { position: absolute; left: -2.2em; top: 0; bottom: 0; width: 2em; font-size: 0.58em; }
+.reveal .pbars .pb-y span { position: absolute; right: 0; transform: translateY(50%); }
+.reveal .pbars .pb-area { position: absolute; inset: 0; border-left: 1px solid #52514e;
+  border-bottom: 1px solid #52514e; }
+.reveal .pbars .pb-grid { position: absolute; left: 0; right: 0; border-top: 1px solid #e4e3df; }
+.reveal .pbars .pb-stop { position: absolute; left: 0; right: 0; border-top: 1.5px dashed #1f1e1c; z-index: 2; }
+.reveal .pbars .pb-stop span { position: absolute; left: 0.3em; bottom: 0.15em; font-size: 0.52em; color: #52514e;
+  background: rgba(255,255,255,0.85); padding: 0 0.2em; }
+// One column for the plant, then one per zone; the bars, labels, and dot rows share it.
+.reveal .pbars .pb-row { display: flex; gap: 5px; padding: 0 4px; }
+.reveal .pbars .pb-col { position: relative; flex: 1 1 0; min-width: 0; display: flex; justify-content: center; }
+.reveal .pbars .pb-col.plant { flex: 1.9 1 0; margin-right: 6px; }
+.reveal .pbars .pb-bars { position: absolute; inset: 0; }
+.reveal .pbars .pb-bars .pb-col { height: 100%; align-items: flex-end; }
+.reveal .pbars .pb-bar { width: 100%; background: #2a78d6; border-radius: 3px 3px 0 0;
+  transition: height 0.45s ease-out; }
+.reveal .pbars .pb-bar.hot { background: #eb6834; }
+.reveal .pbars .pb-val { position: absolute; left: 50%; transform: translate(-50%, -0.2em); font-size: 0.5em;
+  color: #1f1e1c; transition: bottom 0.45s ease-out; white-space: nowrap; z-index: 3; }
+.reveal .pbars .pb-x { font-size: 0.5em; margin-top: 0.3em; }
+.reveal .pbars .pb-x .plant { color: #1f1e1c; }
+.reveal .pbars .pb-dots { position: relative; margin-top: 0.25em; }
+.reveal .pbars .pb-dots .pb-row { height: 16px; align-items: center; }
+.reveal .pbars .pb-dots .pb-col { gap: 2px; align-items: center; height: 16px; border-radius: 3px;
+  background: #f4f3f0; }
+.reveal .pbars .pb-rowlab { position: absolute; right: 100%; top: 50%; transform: translateY(-50%);
+  margin-right: 0.5em; font-size: 0.46em; white-space: nowrap; color: #52514e; }
+.reveal .pbars .pb-dot { display: block; width: 11px; height: 11px; border-radius: 50%; flex: 0 0 auto; }
+.reveal .pbars [data-k="results"] .pb-dot { background: #4B2682; }
+.reveal .pbars [data-k="sent"] .pb-dot { border: 2px solid #4B2682; box-sizing: border-box; }
+.reveal .pbars .pb-xlabel { text-align: center; font-size: 0.52em; color: #1f1e1c; margin-top: 0.35em; }
+.reveal .pbars .pb-ylabel { position: absolute; left: -2.9em; top: 50%; transform: translate(-50%, -50%) rotate(-90deg);
+  font-size: 0.6em; color: #1f1e1c; }
+
+// Slide 14: the greedy plan, one site-day at a time (data in figures/greedy_frames.js).
+.reveal .gsteps { font-family: "Source Sans Pro", "Helvetica Neue", Arial, sans-serif; color: #52514e;
+  max-width: 820px; margin: 0.1em auto 0; }
+.reveal .gsteps .gs-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.6em; }
+.reveal .gsteps .gs-count { color: #1f1e1c; }
+.reveal .gsteps .gs-count b { color: #4B2682; }
+.reveal .gsteps .gs-replay { font: inherit; font-size: 0.85em; color: #4B2682; background: none;
+  border: 1px solid #c9b5e6; border-radius: 4px; padding: 0.05em 0.5em; cursor: pointer; }
+.reveal .gsteps .gs-body { display: flex; gap: 60px; margin-top: 0.3em; align-items: flex-start; justify-content: center; }
+.reveal .gsteps .gs-title { font-size: 0.48em; color: #1f1e1c; font-weight: 600; margin-bottom: 0.3em; }
+.reveal .gsteps .gs-tri { width: 250px; }
+.reveal .gsteps .gs-grid, .reveal .gsteps .gs-bottom { display: grid; gap: 2px; width: 250px; }
+.reveal .gsteps .gs-grid .c { aspect-ratio: 1; background: #e4e3df; border-radius: 2px; transition: background 0.3s; }
+.reveal .gsteps .gs-grid .c.on { background: #4B2682; }
+.reveal .gsteps .gs-grid .c.new { background: #eda100; }
+.reveal .gsteps .gs-grid .lab, .reveal .gsteps .gs-bottom div { font-size: 0.36em; line-height: 1; display: flex;
+  align-items: center; justify-content: center; color: #52514e; }
+.reveal .gsteps .gs-bottom { margin-top: 3px; }
+.reveal .gsteps .gs-key { font-size: 0.4em; margin-top: 0.4em; white-space: nowrap; width: max-content; display: flex; align-items: center; gap: 0.4em; }
+.reveal .gsteps .gs-key i { width: 0.9em; height: 0.9em; border-radius: 2px; background: #e4e3df; display: inline-block;
+  margin-left: 0.6em; }
+.reveal .gsteps .gs-key i.on { background: #4B2682; margin-left: 0; }
+.reveal .gsteps .gs-key i.new { background: #eda100; }
+.reveal .gsteps .gs-plan { width: 260px; }
+.reveal .gsteps .gs-row { display: flex; align-items: center; height: 15.5px; gap: 8px; }
+.reveal .gsteps .gs-lab { width: 2.6em; text-align: right; font-size: 0.4em; color: #9a9893; }
+.reveal .gsteps .gs-row.used .gs-lab { color: #1f1e1c; }
+.reveal .gsteps .gs-dots { display: flex; gap: 3px; }
+.reveal .gsteps .gs-dots i { width: 11px; height: 11px; border-radius: 50%; background: #4B2682; display: block; }
+.reveal .gsteps .gs-dots i.new { background: #eda100; }

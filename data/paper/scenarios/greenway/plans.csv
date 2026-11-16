@@ -1,0 +1,10 @@
+plan,site_days,distinct_sites,rank,Ds,median_zone_sd,max_zone_sd,min_separation,pairs_separable
+"WWTP, 1 day",1,1,0,-inf,,,0.0000,0.0000
+"WWTP, 7 days",7,1,0,-inf,,,0.0000,0.0000
+"inlets, 1 day each",3,3,2,-inf,,,0.0000,0.1099
+"inlets, 7 days each",21,3,2,-inf,,,0.0000,0.5385
+"WWTP + inlets, 7 days",28,4,3,-inf,,,0.0106,0.5385
+"all 15 sites, 1 day",15,15,13,-12.0078,1.5923,6.3386,0.8933,0.7473
+"all 15 sites, 7 days",105,15,13,13.2509,0.6020,2.3959,2.3635,1.0000
+"inlets, 7 days each (flow-prop.)",21,3,2,-inf,,,0.0000,0.5385
+"all 15 sites, 7 days (flow-prop.)",105,15,13,13.4625,0.6009,2.3709,2.3791,1.0000

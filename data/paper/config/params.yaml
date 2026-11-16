@@ -1,0 +1,154 @@
+# Single source of every numeric parameter in the project.
+#
+# Markers:
+#   LIT  – value taken from the literature; sources are BibTeX keys in paper/references.bib.
+#   PLACEHOLDER – no basis yet; a placeholder, not a final value.
+#   DATA – measured or reported value; source given.
+
+hydraulics:
+  outlet: WT6011
+  n_days: 3                  # repeated diurnal loading; day 3 is analyzed
+  report_step_s: 60          # must be <= 60 s to resolve the ~11 min outlet delay
+  day_agreement_tol: 0.01    # day-2 vs day-3 outlet flow agreement
+  min_velocity_m_s: 1.0e-4   # floor for dry/stagnant links in the parcel march
+
+loading:
+  litres_per_person_day: 184         # DATA: Ontario residential potable water use per person served, 2024 [statcan2026water]
+                                     #   (Statistics Canada, Survey of Drinking Water Plants, Table 38-10-0271-01; 187 in 2021;
+                                     #   the plant data are from 2022 to 2024). The City design value, 230 L (DSRM 2024, Ch. 3,
+                                     #   s. 3.8-3.9), includes a design margin; with it, the calibrated loading leaves almost no
+                                     #   flow for the non-residential zones.
+  block_pipe_distance_m: 30          # each 2021 dissemination block's people go to the Built SAN gravity pipes within this
+                                     #   distance of the block, by drain connections (15 m gives zone shares within 0.15 points)
+  block_nearest_max_m: 500           # a mainly residential block with no pipe that close goes to its nearest pipe if within
+                                     #   this distance (private sewers); other blocks and farther ones contribute no one
+  # Sanitary diurnal multipliers, hours 0–23, unit mean. DATA: Abu-Bakar, Williams & Hallett 2021 [abubakar2021],
+  # Fig. 1d, hourly mean water use of 11,528 smart-metered households in England, January–May 2020, as printed on
+  # the bars (hydraulics/diurnal/abubakar2021_fig1d.csv), divided by their mean (14.24 L/h). The period includes the
+  # first two months of the COVID-19 lockdown, which moved the morning peak later. Applied at every loaded node.
+  diurnal_pattern: [0.541, 0.309, 0.204, 0.176, 0.183, 0.183, 0.302, 0.583, 1.067, 1.538, 1.727, 1.699,
+                    1.538, 1.397, 1.264, 1.159, 1.138, 1.243, 1.439, 1.664, 1.538, 1.257, 0.997, 0.857]
+  infiltration_L_s_ha: 0.1           # City of London design value: Design Specifications & Requirements Manual (2024), Ch. 3.
+                                     #   For comparison only: over the network footprint it exceeds the plant's dry-day
+                                     #   minimum flow in most months, so the model uses the calibrated infiltration instead
+  # Groundwater infiltration, steady, no biomarker, shared over the gravity pipes by length. DATA: minimum night-flow
+  # method [epa2014ii] on the plant's dry-day minimum rates (data/plant/greenway_daily_mps.csv): the total is set by
+  # hydraulics/calibrate_loading.py so that the model's routed outlet minimum/mean equals the plant's dry-day median and
+  # its mean equals the plant's dry-weather flow (calibration block). The routed residential and non-residential flow
+  # still arriving at the minimum is the allowance for night-time wastewater.
+  # The calibrated total is in hydraulics/greenway/calibration.json (infiltration_L_s), read by build_greenway.py.
+  # Non-residential flow in the City's commercial, institutional, and industrial zones (data/Zoning_Areas.geojson,
+  # GeneralizedLandUse; zone areas clipped to the network footprint), shared over each zone's pipes by length and lumped
+  # at their upstream nodes. It carries no biomarker. The City's design allowances (Design Specifications & Requirements
+  # Manual, 2024, Ch. 3, s. 3.8: commercial and institutional 100 people/ha x 230 L = 23,000 L/ha/d; industrial
+  # 20,000 L/ha/d for areas of 200 ha or more) give the relative weights only; the total is set by calibrate_loading.py.
+  # No single large user is loaded separately; a rise in the south inlet's share from 2023, likely from an
+  # industrial user, is not modelled (data issue D34).
+  nonresidential:
+    zoning: data/Zoning_Areas.geojson
+    weights_L_ha_day: {COMMERCIAL: 23000, INSTITUTIONAL: 23000, INDUSTRIAL: 20000}
+    # The calibrated total is in hydraulics/greenway/calibration.json (nonresidential_L_s).
+    # Hourly multipliers, hours 0-23, unit mean (measured water demand; indoor use reaches the sewer within minutes).
+    # LIT: commercial = mean of the shop, catering, and office profiles of [lodi2026], Fig. 7 (hourly values read from the
+    #   figure, each normalized to unit mean); night (02:00-05:00) level 0.10.
+    # LIT: institutional = the measured nursing-home profile of [blokker2011], Fig. 7 (hourly means read from the
+    #   figure), standing in for the 24 h care of the large institutional parcels (hospitals); night level 0.25.
+    # PLACEHOLDER: industrial = the measured office profile of [blokker2011], Fig. 3; no source for industry; night
+    #   level 0.20.
+    patterns:
+      COMMERCIAL: [0.155, 0.116, 0.096, 0.093, 0.109, 0.199, 0.364, 0.647, 1.095, 1.754, 1.917, 2.103,
+                   1.877, 1.810, 1.810, 1.510, 1.528, 1.638, 1.502, 1.272, 1.105, 0.602, 0.436, 0.261]
+      INSTITUTIONAL: [0.411, 0.250, 0.242, 0.242, 0.266, 0.330, 0.629, 1.572, 2.740, 2.579, 1.692, 1.531,
+                      1.451, 1.370, 1.048, 0.927, 0.806, 0.927, 1.007, 0.806, 0.806, 0.758, 0.806, 0.806]
+      INDUSTRIAL: [0.163, 0.190, 0.217, 0.217, 0.163, 0.163, 0.190, 0.760, 1.710, 2.199, 2.362, 2.579,
+                   2.606, 2.226, 2.036, 2.036, 1.819, 1.059, 0.407, 0.271, 0.163, 0.163, 0.163, 0.136]
+  # Calibration targets (hydraulics/calibrate_loading.py, targets()), computed from the data: the all-season median
+  # flow of the dry sampling days (scenarios/odm/dry_weather_summary.csv, 4d_1mm) and the median minimum over daily
+  # total of the plant's dry days (data/plant/greenway_daily_mps.csv).
+  # Stations with no upstream pipes in the open data (Arva, A.E. Duffield, Wellington Heights, and Coves MHP) get no
+  # inflow, since no flow data exist for them; the 69 Waterloo St station, which serves one house, is left out of the
+  # network (data issue D20).
+
+network:
+  split_tolerance_m: 50              # pipe ends of one node ID farther apart than this are different structures (an ID
+                                     #   reused); below ~25 m pipes drawn short of their maintenance holes split falsely
+  gap_fills:                         # swmmbuilder's gap-fill rules where the GIS has no value; every fill flagged
+    invert_fill: interpolate
+    headwater_slope: 0.005
+    size_fill: downstream
+    shape_codes: {"": CIRCULAR, S: RECT_CLOSED}  # 'S' is square (data issue D07), closed rectangular with equal
+                                       #   sides; no catchment pipe has it. A blank code is not documented and is
+                                       #   taken as circular
+  manning_n: 0.013                   # City of London design value: Design Specifications & Requirements Manual (2024), Ch. 3; all gravity pipes
+  # Pumps and force mains follow the design rules of hydraulics/build_greenway.py (DESIGN_RULES): an ideal pump per
+  # station with no wet-well storage, force mains as full conduits with the City's Hazen-Williams C by diameter, and
+  # discharge 200 mm above the receiving invert (Design Specifications & Requirements Manual, Ch. 4, s. 4.8).
+  rims:                              # rims checked and filled from the lidar ground (swmmbuilder's estimate_rims); every fill
+                                     #   and replacement flagged in data_gaps.csv
+    dem: data/elevation/greenway_dtm.tif  # NRCan HRDEM 1 m bare-earth mosaic 8_1 (CGVD2013) over the catchment, written by
+                                     #   hydraulics/elevation_fetch.py
+    offset: median                   # added to the ground: the median recorded rim - ground (a vertical datum difference
+                                     #   and lid height)
+    flag_m: 1.0                      # recorded rims farther than this from the ground (after the offset) are flagged
+    replace_above_m: 3.0             # flagged rims recorded this far above the ground are replaced by it (raised lids in
+                                     #   fields, ravines, and easements are kept below this)
+    replace_below_m: 1.0             # flagged rims recorded this far below the ground are replaced by it
+
+kinetics:
+  sewer_temperature_C: 15.0          # LIT – southern Ontario observed ~13–23 °C [hart2020]; Alberta 10.8–18.9 °C [maalbared2023].
+                                     #   Kept in preference to the measured Greenway July value, 21.2 °C, as a year-round value
+  ref_temperature_C: 20.0            # LIT – T_ref used by [burnet2023][ahmed2020][guo2023]
+  RNA:
+    k_ref_per_day: 0.3               # LIT – pooled k20 0.30 ± 0.04 d⁻¹ [guo2023]; between 0.145 [ahmed2020] and 0.42–0.70 [burnet2023]
+    theta: 1.04                      # LIT – 1.038 [ahmed2020], 1.04–1.06 [mccall2022], ~1.04 [wiesnerfriedman2023]; literature range 1.01–1.09 [mercier2025][jung2026]
+  PMMoV:
+    k_ref_per_day: 1.0e-6            # LIT – effectively 0: no decay in suspension [burnet2023][mercier2025]. aquakin's positive_log
+                                     #   transform needs k > 0, so the lower bound stands in for zero.
+    theta: 1.04                      # LIT – irrelevant while k ≈ 0; bed value 1.037 [mercier2025]
+
+noise:                               # multiplicative (log-normal) error, natural-log units
+  # Design noise by site. DATA: robust σ of the mean of two replicates, N1, after the April 2023
+  # extraction switch (scenarios/odm/noise_components_postswitch.csv): plant (GRWY) 0.613, hospital
+  # sewershed (VICT) 0.833. The plant value applies at the plant and its inlets, the sewershed value at
+  # every upstream site. The trend leaves the date out, since a centred median that includes the date
+  # biases the robust σ low.
+  sigma_ln_plant: 0.61
+  sigma_ln_upstream: 0.83
+  plant_sites: [WT6011, WT2203, WT1420, OS2272]  # the plant and its inlets. WT2203 is the last maintenance hole
+                                     #   on the 1,350 mm south sewer before the Westminster inlet, which the plant
+                                     #   summaries meter as WIB (data issue D28)
+
+shedding:
+  s_rna_gc_per_infected_day: 2.0e8   # LIT – clinical 1.6–3.9×10⁸ [arts2023], 2.4×10⁸ [hoffmann2023]; WBE back-calc ~2×10¹⁰ [prasek2022].
+                                     #   Does not affect relative localization unless detection limits are modelled.
+
+detection:                           # composites below the laboratory's sLOQ are censored
+  # Sample limits of the laboratory's N1 method after the April 2023 extraction switch, from the ODM
+  # workbook, sheet "5 - AssayMethod", assayMethodID "PowerFecal Pro covN1": sLOD 1.0 and sLOQ 2.5 gc/mL
+  # of original sample (sampleSizeL 0.5, mCF 400, mESV 1 mL). DATA.
+  # Protocol (dx.doi.org/10.17504/protocols.io.j8nlko8owv5r/v1, steps 1-5, read 2026-11-03): 40 mL of
+  # wastewater is centrifuged (4500 g, 120 min) and the pellet extracted. mCF 400 and mESV 1 mL fit a
+  # 40 mL aliquot (sampleSizeL 0.5 is probably the volume collected). With 1 mL of original sample per
+  # qPCR reaction, the limits are 1 and 2.5 gene copies per reaction; the RNeasy limits (0.6 and 1.5 gc/mL,
+  # mESV 1.67 mL) give the same per-reaction values.
+  # The sLOD assumes 1 copy per reaction (theoretical, not measured); the sLOQ was established by testing.
+  # A composite whose value is below the sLOQ is "detected, not quantified": known only to lie in
+  # [sLOD, sLOQ); below the sLOD it is a non-detect, known only to lie below the sLOD.
+  slod_gc_L: 1000
+  sloq_gc_L: 2500
+
+design:
+  composite: time                    # 24 h composites are time-proportional, as the City's autosamplers take them; flow is
+                                     #   not measured at upstream sites, so a flow-proportional composite is impractical there
+  k_prior_sigma_ln: 1.0986           # LIT – log-normal prior on k_RNA, x/÷ 3 around the model value (≈ the 0.1–1.2 /d
+                                     #   literature range [burnet2023][ahmed2020][guo2023][li2023]); k cannot be estimated from the data
+  hot_spot_factor: 5.0               # PLACEHOLDER – hot zone sheds this many times the others (a strong, early local
+                                     #   outbreak; results are also given against this factor)
+  equity_factors: [3, 2]             # equal-precision targets: every zone's shedding known
+                                     #   within these factors, i.e. zone SD of log shedding <= ln 3 and ln 2
+
+sensitivity:                         # LIT ranges for one-at-a-time sensitivity runs
+  k_RNA_ref_per_day: [0.1, 1.2]      # [burnet2023][ahmed2020][guo2023][li2023]
+  apparent_loss_k_per_day: [5.0, 13.0]  # apparent field loss beyond decay [pitton2026][wiesnerfriedman2023]; sensitivity case only
+  s_rna_gc_per_infected_day: [2.0e8, 2.0e10]  # clinical [hoffmann2023][arts2023], WBE back-calculated [prasek2022];
+                                     #   the two rates of the prevalence illustration (greenway_detection.py)

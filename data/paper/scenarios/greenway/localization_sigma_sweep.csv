@@ -1,0 +1,7 @@
+noise,sigma_plant,sigma_upstream,greedy_all_pairs_site_days,greedy_all_pairs_reached,greedy_correct,all7_correct,adaptive_K2_site_days_median,adaptive_K2_site_days_mean,adaptive_K2_correct,adaptive_K2_inconclusive
+upstream 0.50,0.367,0.500,18,True,0.793,0.993,27.000,41.726,0.884,0.104
+upstream 0.65,0.478,0.650,26,True,0.738,0.972,42.000,54.621,0.808,0.182
+upstream 0.83 (design),0.610,0.830,38,True,0.704,0.929,60.000,68.057,0.714,0.274
+upstream 1.00,0.735,1.000,54,True,0.696,0.876,81.000,78.197,0.616,0.371
+classical,0.685,1.072,59,True,0.701,0.864,90.000,80.700,0.602,0.380
+N1/PMMoV,0.749,1.309,81,False,0.701,0.793,120.000,89.822,0.481,0.500

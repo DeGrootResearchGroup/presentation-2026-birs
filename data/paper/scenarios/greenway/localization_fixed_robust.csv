@@ -1,0 +1,9 @@
+plan,site_days,analysis,truth,correct,correct_min_zone,correct_confident
+"greedy hot-spot, 38 site-days",38,naive,realistic,0.504,0.220,0.172
+"greedy hot-spot, 38 site-days",38,robust,realistic,0.572,0.180,0.061
+"all 15 sites, 3 days",45,naive,realistic,0.580,0.290,0.302
+"all 15 sites, 3 days",45,robust,realistic,0.653,0.350,0.134
+"all 15 sites, 7 days",105,naive,realistic,0.745,0.520,0.548
+"all 15 sites, 7 days",105,robust,realistic,0.821,0.630,0.389
+"all 15 sites, 14 days",210,naive,realistic,0.842,0.610,0.757
+"all 15 sites, 14 days",210,robust,realistic,0.912,0.770,0.628

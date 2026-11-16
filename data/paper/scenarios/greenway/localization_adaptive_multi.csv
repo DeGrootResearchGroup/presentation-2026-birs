@@ -1,0 +1,4 @@
+case,K,analysis,site_days_median,site_days_mean,site_days_p90,days_median,localized,null_declared,inconclusive,correct,correct_given_localized,correct_min_zone,one_of_two_alone,wrong_zone_named,first_named,first_correct,first_correct_given_named,first_site_days_median,first_days_median
+realistic,1,"robust, two hot zones",80.000,79.746,80.000,40.000,0.011,0.000,0.989,0.006,0.500,0.000,0.000,0.006,0.471,0.453,0.962,40.000,20.000
+realistic,2,"robust, two hot zones",120.000,118.431,120.000,40.000,0.041,0.000,0.959,0.029,0.690,0.000,0.000,0.013,0.647,0.629,0.972,42.000,14.000
+realistic,4,"robust, two hot zones",200.000,191.861,200.000,40.000,0.105,0.000,0.895,0.087,0.830,0.000,0.000,0.018,0.809,0.781,0.966,50.000,10.000

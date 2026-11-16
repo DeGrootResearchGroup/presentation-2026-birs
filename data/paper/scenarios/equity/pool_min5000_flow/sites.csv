@@ -1,0 +1,155 @@
+node,kind,graph_pop,flow_pop,kept
+WT6011,current,234261,234261,True
+WT2203,current,73341,76809,True
+WT1420,current,138855,112609,True
+OS2272,current,31860,24117,True
+DS428,current,20525,20250,True
+WM1172,current,18764,17759,True
+OS2220,current,15287,16631,True
+WM6002,current,38317,38272,True
+OK48,current,53642,49275,True
+OK332,current,68649,61174,True
+WO605,current,24750,16894,True
+WO635,current,16919,24254,True
+WT160,current,53500,62024,True
+WT1863,current,12915,10907,True
+WT6005,current,24238,20695,True
+CV173,off-road maintenance hole,21632,21746,True
+CV2,off-road maintenance hole,13023,14203,True
+CV3002,off-road maintenance hole,14208,15494,True
+CV3006,off-road maintenance hole,14208,15433,True
+CV3007,off-road maintenance hole,14208,15413,True
+CV3008,off-road maintenance hole,14208,15382,True
+DN404,flow monitor,16989,11757,True
+DN517,off-road maintenance hole,18486,12926,True
+DN805,off-road maintenance hole,18448,12885,True
+DS12,flow monitor,21243,21224,True
+DS15,off-road maintenance hole,21243,21254,True
+DS1542,off-road maintenance hole,21243,21164,True
+DS1546,off-road maintenance hole,21243,21275,True
+DS1547,off-road maintenance hole,21243,21298,True
+DS1634,off-road maintenance hole,5744,6121,True
+DS1807,off-road maintenance hole,21243,21188,True
+DS1895,off-road maintenance hole,21243,21174,True
+DS427,off-road maintenance hole,16869,14118,True
+DS615,off-road maintenance hole,21243,21289,True
+DS630,off-road maintenance hole,20588,20367,True
+FH1,flow monitor,7031,6554,True
+MC306,off-road maintenance hole,6498,7100,True
+OK451,off-road maintenance hole,71767,64772,True
+OS1018,off-road maintenance hole,8465,300,False
+OS1078,flow monitor,45454,5075,True
+OS1079,off-road maintenance hole,45454,5092,True
+OS1080,off-road maintenance hole,21632,21795,True
+OS1081,off-road maintenance hole,21632,21818,True
+OS1082,off-road maintenance hole,21632,21849,True
+OS1083,off-road maintenance hole,21632,21864,True
+OS1136,flow monitor,66831,47179,True
+OS1303,off-road maintenance hole,20588,20392,True
+OS1305,off-road maintenance hole,20945,20466,True
+OS1306,off-road maintenance hole,20945,20473,True
+OS1364,off-road maintenance hole,21632,21835,True
+OS1425,off-road maintenance hole,45386,4981,False
+OS1540,off-road maintenance hole,20945,20477,True
+OS1541,off-road maintenance hole,20945,20480,True
+OS1546,off-road maintenance hole,8139,39,False
+OS2270,off-road maintenance hole,31860,24015,True
+OS2271,off-road maintenance hole,31860,24063,True
+OS2315,off-road maintenance hole,21632,21772,True
+OS767,off-road maintenance hole,7791,520,False
+OS768,off-road maintenance hole,7791,531,False
+OS769,off-road maintenance hole,7791,624,False
+OS770,off-road maintenance hole,8108,717,False
+OS782,flow monitor,9277,6239,True
+PC267,off-road maintenance hole,41951,42582,True
+PC38,off-road maintenance hole,38469,39301,True
+PC39,off-road maintenance hole,38477,39312,True
+PM178,off-road maintenance hole,5146,3631,False
+SL125,off-road maintenance hole,7422,8487,True
+SL126,off-road maintenance hole,7422,8502,True
+SL127,off-road maintenance hole,7422,8517,True
+SL128,off-road maintenance hole,7422,8532,True
+SL129,off-road maintenance hole,7422,8547,True
+SL130,off-road maintenance hole,7422,8562,True
+SL131,flow monitor,7423,8578,True
+SL132,off-road maintenance hole,7425,8585,True
+SL6001,pump station,7750,11579,True
+TB375,off-road maintenance hole,5367,5973,True
+TB385,off-road maintenance hole,13023,14193,True
+TB497,off-road maintenance hole,5360,5919,True
+TB551,off-road maintenance hole,5942,6490,True
+TB694,off-road maintenance hole,7154,7583,True
+TB860,off-road maintenance hole,6017,6575,True
+TB861,off-road maintenance hole,7154,7585,True
+WM1,off-road maintenance hole,6498,7152,True
+WM1180,flow monitor,5817,5791,True
+WM1182,off-road maintenance hole,5333,5190,True
+WM1183,off-road maintenance hole,5333,5187,True
+WM1184,off-road maintenance hole,5333,5183,True
+WM1365,flow monitor,12947,11739,True
+WM1529,off-road maintenance hole,30880,29588,True
+WM1530,off-road maintenance hole,38317,38235,True
+WM2,off-road maintenance hole,6498,7201,True
+WM3,off-road maintenance hole,6498,7247,True
+WM448,off-road maintenance hole,8315,5341,True
+WM591,flow monitor,9764,8267,True
+WO417,flow monitor,10307,8493,True
+WO581,flow monitor,5202,1173,False
+WO6001,pump station,42834,47334,True
+WO6012,pump station,25916,22862,True
+WO609,off-road maintenance hole,25735,21468,True
+WO788,off-road maintenance hole,9932,5043,True
+WO789,off-road maintenance hole,9932,5032,True
+WO790,off-road maintenance hole,9932,5021,True
+WO791,off-road maintenance hole,9932,5009,True
+WO792,off-road maintenance hole,9932,5004,True
+WO793,off-road maintenance hole,9932,4996,False
+WO794,off-road maintenance hole,9932,4980,False
+WO800,off-road maintenance hole,9932,4916,False
+WO801,off-road maintenance hole,9932,4916,False
+WO802,off-road maintenance hole,6463,2555,False
+WO803,off-road maintenance hole,6463,2554,False
+WO804,off-road maintenance hole,6463,2539,False
+WO805,off-road maintenance hole,6463,2518,False
+WO806,off-road maintenance hole,6463,2497,False
+WR274,flow monitor,8565,12722,True
+WR492,flow monitor,5433,4598,False
+WR530,off-road maintenance hole,5437,5794,True
+WR535,flow monitor,5437,5927,True
+WR909,flow monitor,5328,3939,False
+WR910,off-road maintenance hole,5328,3945,False
+WR913,off-road maintenance hole,5328,3979,False
+WR914,off-road maintenance hole,5328,3991,False
+WT1093,flow monitor,8071,6594,True
+WT155,off-road maintenance hole,53500,61931,True
+WT1846,off-road maintenance hole,24238,16125,True
+WT1847,off-road maintenance hole,24238,16122,True
+WT1848,off-road maintenance hole,24238,16117,True
+WT1849,off-road maintenance hole,24238,16113,True
+WT1850,off-road maintenance hole,24238,16103,True
+WT1851,off-road maintenance hole,13897,11914,True
+WT1854,off-road maintenance hole,13897,11874,True
+WT1856,flow monitor,13190,11065,True
+WT1866,off-road maintenance hole,12915,10855,True
+WT2023,off-road maintenance hole,24238,4570,False
+WT2182,off-road maintenance hole,7865,12128,True
+WT2204,off-road maintenance hole,73341,76812,True
+WT2205,off-road maintenance hole,73341,76808,True
+WT2247,off-road maintenance hole,5465,3231,False
+WT247,off-road maintenance hole,59228,65136,True
+WT248,off-road maintenance hole,59228,65144,True
+WT249,off-road maintenance hole,59228,65152,True
+WT250,off-road maintenance hole,59228,65165,True
+WT251,off-road maintenance hole,59228,65175,True
+WT262,off-road maintenance hole,59738,65517,True
+WT263,off-road maintenance hole,59738,65524,True
+WT264,off-road maintenance hole,59738,65536,True
+WT265,off-road maintenance hole,59738,65543,True
+WT266,off-road maintenance hole,59738,65547,True
+WT267,off-road maintenance hole,59738,65555,True
+WT268,off-road maintenance hole,59738,65560,True
+WT269,off-road maintenance hole,59738,65568,True
+WT270,off-road maintenance hole,59738,65574,True
+WT271,off-road maintenance hole,59738,65577,True
+WT3006,flow monitor,59228,65130,True
+OS737,trunk maintenance hole,,7344,True

@@ -1,0 +1,6 @@
+outlet: WT6011
+composite: time
+own_share: 0.99
+separation: 2.0
+tau_analysis: 0.3
+tau_cautious: 0.5

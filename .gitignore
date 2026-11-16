@@ -1,0 +1,19 @@
+# Rendered deck. It is rebuilt from slides.qmd (quarto render), locally or by CI.
+/slides.html
+/slides_files/
+/slides.pdf
+/.quarto/
+/_site/
+
+# Python (figure scripts)
+__pycache__/
+*.pyc
+.venv/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+**/*.quarto_ipynb

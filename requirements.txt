@@ -1,0 +1,9 @@
+# Drawing the figures (scripts/talk_figures.py); rendering the deck needs only Quarto.
+# scripts/sync_from_paper.py runs in the paper repository's own environment instead.
+numpy>=2.4
+pandas>=3.0
+matplotlib>=3.10
+geopandas>=1.1
+shapely>=2.1
+networkx>=3.5
+pyyaml>=6.0

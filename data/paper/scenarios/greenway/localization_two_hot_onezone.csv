@@ -1,0 +1,6 @@
+plan,analysis,hot_zones,kappa,tau,site_days_median,site_days_mean,site_days_p90,days_median,localized,null_declared,inconclusive,correct,correct_given_localized,correct_min_zone,one_of_two_alone,wrong_zone_named,first_named,first_correct,first_correct_given_named,first_site_days_median,first_days_median
+"adaptive, held, K=2",robust,2,2.000,0.300,120.000,110.700,120.000,42.000,0.169,0.000,0.831,0.000,0.000,0.000,0.152,0.016,0.169,0.152,0.903,63.000,22.000
+"adaptive, held, K=2",robust,2,3.000,0.300,120.000,92.959,120.000,42.000,0.435,0.000,0.565,0.000,0.000,0.000,0.425,0.010,0.435,0.425,0.977,51.000,18.000
+"adaptive, held, K=2",robust,2,5.000,0.300,51.000,63.289,120.000,18.000,0.782,0.000,0.218,0.000,0.000,0.000,0.774,0.009,0.782,0.774,0.989,39.000,14.000
+"adaptive, held, K=2",robust,2,7.000,0.300,36.000,48.002,114.000,13.000,0.919,0.000,0.081,0.000,0.000,0.000,0.915,0.004,0.919,0.915,0.995,33.000,12.000
+"adaptive, held, K=2",robust,2,10.000,0.300,30.000,37.811,75.000,11.000,0.969,0.000,0.031,0.000,0.000,0.000,0.964,0.005,0.969,0.964,0.995,27.000,10.000
