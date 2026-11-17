@@ -953,8 +953,10 @@ Co-author: Anthony P. R. Sherratt
 [Funding: NSERC (RGPIN-2024-05703) and the Ontario Ministry of the Environment, Conservation and Parks. Thanks to the City of London for plant access, sampling, and help with the GIS data.]{.takeaway}
 :::
 ::: {.column width="40%"}
-::: {.callout-note}
-QR code to the deck, paper, and code: to add once the repository names are fixed.
+![](figures/qr_deck.svg){.fig-fill .figctr style="height:300px;width:auto"}
+
+::: {style="text-align:center"}
+[Slides: degrootresearchgroup.github.io/presentation-2026-birs]{.src}
 :::
 :::
 :::
