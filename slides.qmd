@@ -247,7 +247,7 @@ plant's median dry-day flow and its night minimum.
 - Only nodes that could be sampled can be cuts (pumping stations or maintenance holes with no drop structure). 
 - To draw zones, each of the {{< var NetSplits >}} flow splits is assigned to the pipe carrying the most flow, so every arriving sewer's network becomes a tree. 
 - The transport model keeps the real splits, so flow down the smaller pipe still reaches another zone's outlet: those are the dashed arrows in the tree diagram. 
-- The one from zone 10 to zone 08 is different. It is a flat pipe that flows against its drawn direction in the model (data issue D33). 
+- The one from zone {{< var IncMaxZone >}} to zone {{< var IncMaxOwnZone >}} is different. It is a flat pipe in zone {{< var IncMaxZone >}} that flows against its drawn direction in the model (data issue D33), so {{< var IncMaxWPct >}} % of the composite at {{< var IncMaxSite >}} comes from zone {{< var IncMaxZone >}}. The others, such as zone 10 into zone 08, are ordinary flow splits.
 - The three sewers arriving at the plant and one pumping station are cut where they
 arrive. 
 - Pass-through zones matter later: they can only be estimated by differencing two sites.
@@ -1309,7 +1309,7 @@ $$
 - The pair-separation curve behind slide 13, against the plant and its arriving sewers alone and one day at every site.
 :::
 
-## With normal noise, the separation plan's wrong guesses fall on the next zone along the same branch
+## With normal noise, nearly half of the separation plan's wrong guesses name a zone next to the hot one
 
 ![](figures/confusion.svg){.fig-fill style="max-height:420px"}
 
@@ -1317,7 +1317,7 @@ $$
 
 ::: {.notes}
 - Rows: the zone made hot. Columns: the zone the best guess names. The diagonal is a right guess.
-- The misses are mostly neighbours on the same branch of the drainage tree (slide 8), whose composites differ only at the site between them.
+- Of the separation plan's wrong guesses, {{< var ConfSepNeighbourPct >}} % name a zone directly upstream or downstream of the hot one on the drainage tree (slide 8), against {{< var ConfNeighbourChancePct >}} % if they were spread evenly. Such neighbours' composites differ mainly at the one site between them. For seven days at every site, {{< var ConfAllSevenNeighbourPct >}} % of its fewer misses are neighbours.
 - The separation plan is right {{< var LocGreedyFullCorrect >}} % of the time; seven days at every site, {{< var LocAllSevenCorrect >}} %. With realistic noise both fall (slide 15).
 :::
 
